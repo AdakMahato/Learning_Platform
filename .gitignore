@@ -1,0 +1,23 @@
+# Runtime state & secrets
+.env
+data/
+*.db
+*.db-wal
+*.db-shm
+.secret_key
+platform_progress.json
+*.bak
+*.log
+
+# Python & OS caches
+__pycache__/
+*.py[cod]
+*.pyo
+.pytest_cache/
+.DS_Store
+
+# Legacy non-platform directories in workspace root
+web/
+streamlit/
+Library/
+Story_Driven_DBMS_Learning_Report.pdf

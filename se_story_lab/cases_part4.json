@@ -1,0 +1,545 @@
+{
+    "12": {
+        "title": "Case 12: Investigation: The Integration Test Catastrophe",
+        "episodes": [
+            {
+                "title": "Module 1: The Big-Bang Integration Disaster",
+                "blocks": [
+                    {
+                        "type": "problem",
+                        "title": "The Autonomous Drone Crash",
+                        "content": "On Friday evening, the drone avionics team decided to merge all 16 independently developed modules (navigation, radar, motor controller, battery management, telemetry) in a single massive 'Big-Bang' build. Upon boot, the drone throttled motors to maximum, locked telemetry ports, and crashed into the laboratory ceiling. The debug console spat out 3,400 cascading error traces. Zero engineers could pinpoint which module caused the initial fault."
+                    },
+                    {
+                        "type": "objective",
+                        "title": "Investigation Objective",
+                        "content": "Diagnose why Big-Bang integration fails, master systematic integration strategies (Top-Down with Stubs, Bottom-Up with Drivers, Sandwich Testing), and differentiate Alpha vs Beta acceptance testing."
+                    },
+                    {
+                        "type": "concept",
+                        "title": "Why Big-Bang Integration is Architectural Suicide",
+                        "content": "- **Big-Bang Integration:** Developing all components in isolation and combining them all at once at the very end.\n- **Disadvantages:**\n  - Fault isolation is virtually impossible: an error could be in Module A, Module B, or the interface between them.\n  - Major architectural interface incompatibilities are discovered at the absolute deadline.\n  - Critical schedule delay: debugging becomes an uncoordinated panic."
+                    },
+                    {
+                        "type": "micro_challenge",
+                        "title": "Big-Bang Integration Flaw",
+                        "question": "What is the primary technical reason Big-Bang integration is avoided in mission-critical software engineering?",
+                        "options": [
+                            "It requires too many compile flags.",
+                            "Fault localization is extremely difficult because all module interfaces interact simultaneously, obscuring root causes.",
+                            "It requires writing too many Stubs.",
+                            "It only works on Linux."
+                        ],
+                        "answer": 1,
+                        "explanation": "**Why Fault Localization Difficulty is Correct:**\nWhen dozens of modules are integrated simultaneously, finding which interface or data structure caused a crash is like looking for a needle in a haystack of interconnected dependencies."
+                    }
+                ]
+            },
+            {
+                "title": "Module 2: Top-Down Integration with Stubs",
+                "blocks": [
+                    {
+                        "type": "markdown",
+                        "content": "To systematically integrate software, we assemble and test modules incrementally. **Top-Down Integration** starts at the main control module."
+                    },
+                    {
+                        "type": "concept",
+                        "title": "Top-Down Integration Mechanics",
+                        "content": "- Integration begins with the root executive module.\n- All subordinate direct modules are replaced with **Stubs**.\n- **Stub:** A temporary dummy module that simulates a subordinate worker. It accepts parameters, prints diagnostic traces, and returns fixed mock values without doing real work.\n- Modules are integrated one by one (or in clusters) either **Depth-First** (along a major control path) or **Breadth-First** (level by level across the structure chart).\n- **Advantages:** Early working demonstration of high-level control logic and user interface; major architectural flaws exposed early.\n- **Disadvantages:** Writing realistic stubs for complex database queries or math algorithms is labor-intensive; low-level utility bugs caught late."
+                    },
+                    {
+                        "type": "visual",
+                        "title": "Top-Down Integration Harness with Stubs",
+                        "code": "graph TD\n  M1[\"Real: Master Mission Controller\"] --> S1[\"STUB: Radar Sensor\"]\n  M1 --> S2[\"STUB: Flight Dynamics Engine\"]\n  M1 --> S3[\"STUB: Telemetry Transmitter\"]\n  \n  style S1 stroke-dasharray: 5 5,stroke:#EF4444\n  style S2 stroke-dasharray: 5 5,stroke:#EF4444\n  style S3 stroke-dasharray: 5 5,stroke:#EF4444"
+                    },
+                    {
+                        "type": "micro_challenge",
+                        "title": "Integration Testing Artifacts",
+                        "question": "In Top-Down Integration testing, what is the technical name for a dummy skeleton module that simulates the behavior and return values of an unwritten subordinate module?",
+                        "options": [
+                            "Driver",
+                            "Stub",
+                            "Profiler",
+                            "Compiler"
+                        ],
+                        "answer": 1,
+                        "explanation": "**Why Stub is Correct:**\nA **Stub** is a dummy subroutine called by the module under test. (In contrast, a **Driver** is a calling harness that invokes the module under test from above)."
+                    }
+                ]
+            },
+            {
+                "title": "Module 3: Bottom-Up Integration with Drivers & Sandwich Testing",
+                "blocks": [
+                    {
+                        "type": "markdown",
+                        "content": "The inverse strategy is **Bottom-Up Integration**, which tests atomic low-level worker modules first."
+                    },
+                    {
+                        "type": "concept",
+                        "title": "Bottom-Up Integration Mechanics",
+                        "content": "- Low-level modules are combined into clusters (called **Builds**) that perform a specific software sub-function.\n- A **Driver** is written to coordinate test case input and output for the cluster.\n- **Driver:** A test harness program that calls subordinate modules, feeds test parameters, and verifies return outputs.\n- As integration moves upward, drivers are replaced with actual higher-level supervisory modules.\n- **Advantages:** Low-level data access, math calculations, and device I/O are thoroughly verified first; no stubs required.\n- **Disadvantages:** High-level architectural control logic is not tested until the final stages; no working demo until late."
+                    },
+                    {
+                        "type": "concept",
+                        "title": "Sandwich (Hybrid) Integration Testing",
+                        "content": "- Combines the strengths of both paradigms:\n  - **Top layer:** Integrated Top-Down using Stubs to verify user workflows and control logic.\n  - **Bottom layer:** Integrated Bottom-Up using Drivers to verify raw hardware drivers, math routines, and database persistence.\n  - **Convergence:** Both branches converge at a predetermined middle operational layer."
+                    },
+                    {
+                        "type": "fill_in_the_blank",
+                        "title": "Bottom-Up Testing Harness",
+                        "question": "In Bottom-Up integration testing, a temporary software module written to invoke subordinate modules under test and pass test parameters is called a test _____.\n\nAnswer: _____",
+                        "answer": "Driver",
+                        "alternatives": [
+                            "Driver",
+                            "Test Driver"
+                        ],
+                        "explanation": "**Why Driver is Correct:**\nA **Driver** sits above the modules being tested, acting as the caller harness in bottom-up integration."
+                    }
+                ]
+            },
+            {
+                "title": "Module 4: Acceptance Testing: Alpha vs Beta",
+                "blocks": [
+                    {
+                        "type": "markdown",
+                        "content": "Once integration and system testing are complete, software undergoes **Acceptance Testing** to validate readiness for real-world deployment."
+                    },
+                    {
+                        "type": "concept",
+                        "title": "Alpha Testing vs Beta Testing",
+                        "content": "| Characteristic | Alpha Testing | Beta Testing |\n| :--- | :--- | :--- |\n| **Environment** | Developer's site (In-house laboratory) | Customer's real operational site |\n| **Users** | Internal QA or select clients with developers | Large group of external end-users |\n| **Developer Role** | Developers present, observing and recording | Developers absent; users log issues remotely |\n| **Operating Context** | Controlled, structured test environment | 'In the wild' on diverse real hardware/OS |\n| **Timing** | Precedes Beta testing | Final verification before general commercial release |"
+                    },
+                    {
+                        "type": "scenario_decision",
+                        "title": "Field Investigation: Selecting the Acceptance Strategy",
+                        "scenario": "A medical device company has integrated a robotic surgical arm. The executive team wants to skip internal laboratory testing and immediately ship 50 prototypes to hospitals for live patient surgeries as a 'Beta test' to gather quick feedback.",
+                        "question": "How must the Lead Quality Assurance Engineer respond?",
+                        "options": [
+                            "Approve the plan; real patient testing produces the most realistic bug reports.",
+                            "Halt the release immediately: Safety-critical medical systems require rigorous controlled in-house Alpha testing under developer supervision and formal clinical trial protocols before any unmonitored external deployment.",
+                            "Run an automated unit test script and declare Beta testing complete.",
+                            "Ship only 10 prototypes instead of 50."
+                        ],
+                        "answer": 1,
+                        "rationale": "**Why Controlled Alpha Testing is Legally & Ethically Mandatory:**\nIn safety-critical domains, skipping controlled **Alpha Testing** in simulated laboratory environments puts human lives at risk. Beta testing in the wild is only appropriate after rigorous in-house verification has proven the system operates safely under all monitored nominal and fault conditions."
+                    },
+                    {
+                        "type": "micro_challenge",
+                        "title": "Alpha vs Beta Venue",
+                        "question": "Where does **Alpha Testing** formally take place?",
+                        "options": [
+                            "At the end-users' offices without developer supervision.",
+                            "At the developer's site in a controlled environment with developers present.",
+                            "In a coffee shop with anonymous users.",
+                            "Exclusively in the cloud on AWS."
+                        ],
+                        "answer": 1,
+                        "explanation": "**Why Developer's Site is Correct:**\nBy definition, **Alpha Testing** is performed at the software developer's facility in a controlled environment, observed by developers."
+                    }
+                ]
+            }
+        ]
+    },
+    "13": {
+        "title": "Case 13: White-Box Testing, Loop Testing & High-Order Verification",
+        "episodes": [
+            {
+                "title": "Module 1: White-Box Logic Coverage Criteria",
+                "blocks": [
+                    {
+                        "type": "markdown",
+                        "content": "Unlike Black-Box testing, **White-Box (Structural / Glass-Box) Testing** examines the internal logic, branch structures, and statements of source code to design thorough verification suites."
+                    },
+                    {
+                        "type": "objective",
+                        "title": "Module Objective",
+                        "content": "Understand logic coverage criteria (Statement, Branch, Condition, Path coverage), calculate McCabe's Cyclomatic Complexity on Control Flow Graphs, and execute systematic Loop Testing."
+                    },
+                    {
+                        "type": "concept",
+                        "title": "The Hierarchy of Structural Coverage Criteria",
+                        "content": "1. **Statement Coverage ($C_0$):** Every executable source code statement is executed at least once. (Weakest criterion; can achieve 100% statement coverage while completely missing untested `else` branches).\n2. **Branch / Decision Coverage ($C_1$):** Every boolean decision branch (both `True` and `False` outcomes) is evaluated at least once.\n3. **Condition Coverage:** Every individual boolean sub-expression in a compound predicate (e.g., in `if (A and B)`) is evaluated as both `True` and `False`.\n4. **Multiple Condition Coverage (MCC):** Every possible combination of boolean truth values for all conditions in a decision is tested ($2^k$ combinations).\n5. **Basis Path Coverage:** Every linearly independent execution path through the program is executed at least once.\n6. **Complete Path Coverage:** Every single executable path through the program is tested. (Practically impossible for programs with loops due to infinite combinatorial paths)."
+                    },
+                    {
+                        "type": "micro_challenge",
+                        "title": "Coverage Hierarchy Challenge",
+                        "question": "Consider this code: `if (x > 0) y = 1;`. A test case with `x = 5` achieves 100% Statement Coverage. What is the Branch Coverage achieved by this single test case?",
+                        "options": [
+                            "100% Branch Coverage",
+                            "50% Branch Coverage",
+                            "0% Branch Coverage",
+                            "75% Branch Coverage"
+                        ],
+                        "answer": 1,
+                        "explanation": "**Why 50% Branch Coverage is Correct:**\nThe `if` statement has two branches: `True` (when $x > 0$) and implicit `False` (when $x \\le 0$). The test `x = 5` only exercises the `True` branch (1 out of 2 branches), yielding $\\frac{1}{2} = 50\\%$ branch coverage."
+                    }
+                ]
+            },
+            {
+                "title": "Module 2: Control Flow Graphs & McCabe's Cyclomatic Complexity",
+                "blocks": [
+                    {
+                        "type": "markdown",
+                        "content": "In 1976, Thomas J. McCabe formulated **Cyclomatic Complexity**, providing an objective mathematical foundation for measuring software structural complexity and determining the exact number of test cases required for basis path testing."
+                    },
+                    {
+                        "type": "concept",
+                        "title": "Three Equivalent Formulas for Cyclomatic Complexity $V(G)$",
+                        "content": "McCabe proved that the number of linearly independent execution paths $V(G)$ can be computed in three identical ways:\n\n1. **Graph Theory Formula:**\n   $$V(G) = E - N + 2P$$\n   *(where $E$ = edges, $N$ = nodes, $P$ = connected components, typically $P = 1$ for a single function)*.\n\n2. **Predicate Node Formula:**\n   $$V(G) = P_{pred} + 1$$\n   *(where $P_{pred}$ = number of binary predicate/decision nodes)*.\n\n3. **Planar Region Formula:**\n   $$V(G) = \\text{Number of Planar Enclosed Regions} + 1$$\n\n### Industrial Complexity Benchmarks:\n- **$1 - 10$:** Simple, low risk, well-structured routine.\n- **$11 - 20$:** Moderate complexity, moderate risk.\n- **$21 - 50$:** High complexity, high risk, difficult to test.\n- **$> 50$:** Untestable, chaotic spaghetti code; mandatory refactoring required."
+                    },
+                    {
+                        "type": "visual",
+                        "title": "Control Flow Graph Representation",
+                        "code": "graph TD\n  N1[\"Node 1: Start / Read x\"] --> N2{\"Node 2: if x > 100?\"}\n  N2 -->|True| N3[\"Node 3: y = x * 2\"]\n  N2 -->|False| N4[\"Node 4: y = x * 0.5\"]\n  N3 --> N5{\"Node 5: if y > 500?\"}\n  N4 --> N5\n  N5 -->|True| N6[\"Node 6: Print 'High'\"]\n  N5 -->|False| N7[\"Node 7: Print 'Normal'\"]\n  N6 --> N8[\"Node 8: Return y / End\"]\n  N7 --> N8"
+                    },
+                    {
+                        "type": "calculation_challenge",
+                        "title": "McCabe Cyclomatic Complexity Calculation",
+                        "formula": "V(G) = E - N + 2P",
+                        "problem": "Calculate the Cyclomatic Complexity $V(G)$ for the Control Flow Graph shown above:\n- It has $N = 8$ nodes.\n- It has $E = 10$ directed edges.\n- It has $P = 1$ single connected program component.\n\nWhat is the exact Cyclomatic Complexity $V(G)$?",
+                        "answer": "4",
+                        "alternatives": [
+                            "4",
+                            "4.0",
+                            "four"
+                        ],
+                        "step_by_step": "**Mathematical Derivation:**\n- Method 1: $V(G) = E - N + 2P = 10 - 8 + 2(1) = 2 + 2 = 4$.\n- Method 2: Predicate nodes are Node 2 and Node 5 ($P_{pred} = 2$). $V(G) = P_{pred} + 1 = 2 + 1 = 3 + 1 = 4$ (counting each binary branch decision).\n- Therefore, exactly **4** linearly independent test paths are required for 100% basis path coverage."
+                    }
+                ]
+            },
+            {
+                "title": "Module 3: Loop Testing Techniques",
+                "blocks": [
+                    {
+                        "type": "markdown",
+                        "content": "Loops are the fundamental engines of computation in algorithms, and boundary conditions within loops are the #1 source of infinite loops and memory corruption."
+                    },
+                    {
+                        "type": "concept",
+                        "title": "Systematic Loop Testing Strategies",
+                        "content": "1. **Simple Loops (Maximum $n$ iterations):**\n   - Skip the loop entirely ($0$ iterations).\n   - Exactly $1$ pass through the loop.\n   - Exactly $2$ passes through the loop.\n   - $m$ passes through the loop (where $m < n$, nominal case).\n   - $(n - 1)$ passes through the loop.\n   - $n$ passes through the loop (maximum boundary).\n   - $(n + 1)$ passes through the loop (attempted overflow test).\n\n2. **Nested Loops:**\n   - Start at the innermost loop. Set all outer loops to their minimum parameter values.\n   - Conduct simple loop tests on the innermost loop.\n   - Work outward, keeping outer loops at nominal and inner loops at typical settings.\n\n3. **Concatenated Loops:**\n   - If loops are independent, test each as an independent simple loop.\n   - If loop A's iteration count determines loop B's range, treat them as nested loops.\n\n4. **Unstructured Loops:**\n   - Unstructured loops (e.g., jumping into loop bodies via `goto`) cannot be tested systematically; they must be refactored into structured loops prior to testing."
+                    },
+                    {
+                        "type": "micro_challenge",
+                        "title": "Loop Testing Technique",
+                        "question": "For a simple loop defined as `for (int i = 0; i < n; i++)`, which set of test iterations represents the boundary test suite for Loop Testing?",
+                        "options": [
+                            "{0, 1, 2, m, n-1, n, n+1}",
+                            "{100, 200, 300}",
+                            "Testing only when i is negative",
+                            "Running the loop for 10 minutes"
+                        ],
+                        "answer": 0,
+                        "explanation": "**Why {0, 1, 2, m, n-1, n, n+1} is Correct:**\nStandard loop testing methodology mandates testing zero passes (skip), single pass, double pass, typical $m$ passes, and the boundary extremes $n-1$, $n$, and $n+1$."
+                    }
+                ]
+            },
+            {
+                "title": "Module 4: High-Order Testing & Canonical Debugging Strategies",
+                "blocks": [
+                    {
+                        "type": "markdown",
+                        "content": "Testing and Debugging are distinct engineering activities: Testing discovers the presence of an error, while Debugging isolates its root cause."
+                    },
+                    {
+                        "type": "concept",
+                        "title": "System Testing & The Three Canonical Debugging Approaches",
+                        "content": "- **System Testing:** Validates the complete system against non-functional dimensions (Stress, Load, Performance, Security, Recovery testing).\n\n### Debugging Strategies:\n1. **Brute Force (Least Efficient):**\n   - Scattering print/log statements everywhere (`print('DEBUG 1')`).\n   - Stepping through hundreds of lines in a debugger without a hypothesis.\n2. **Backtracking (Effective in Small Systems):**\n   - Beginning at the line where the incorrect symptom manifested.\n   - Tracing backwards through source code execution step by step until the point where state first became corrupted is pinpointed.\n3. **Cause Elimination (Scientific Method):**\n   - Formulate hypotheses based on failure symptoms and test logs, design controlled experiments/tests to prove/disprove hypotheses, isolate the cause through deduction."
+                    },
+                    {
+                        "type": "scenario_decision",
+                        "title": "Engineering Dilemma: High Cyclomatic Complexity Refactoring",
+                        "scenario": "A legacy payroll calculation function `calculate_net_pay()` has a measured Cyclomatic Complexity of $V(G) = 64$ due to 63 deeply nested `if-else` and `switch` statements checking regional tax exemptions. The QA team complains that writing 64 test cases is unmaintainable, and bugs frequently slip into production.",
+                        "question": "What is the professional software engineering recommendation?",
+                        "options": [
+                            "Leave the function as is; high complexity is normal for payroll.",
+                            "Refactor `calculate_net_pay()` using the Strategy Pattern or a Rules Engine: decompose the 63 conditions into individual cohesive tax policy classes, bringing each class's complexity below $V(G) \\le 5$.",
+                            "Delete all comments to make the function file shorter.",
+                            "Disable unit testing for this function to speed up CI/CD pipeline runs."
+                        ],
+                        "answer": 1,
+                        "rationale": "**Why Decomposition via Strategy Pattern is Essential:**\nA Cyclomatic Complexity $V(G) = 64$ is dangerously untestable and error-prone. Refactoring via polymorphic strategy classes or a rules table decomposes combinatorial complexity into isolated, testable units."
+                    },
+                    {
+                        "type": "fill_in_the_blank",
+                        "title": "Basis Path Complexity Pioneer",
+                        "question": "Cyclomatic Complexity was invented in 1976 by computer scientist Thomas J. _____.\n\nAnswer: _____",
+                        "answer": "McCabe",
+                        "alternatives": [
+                            "McCabe",
+                            "Thomas McCabe"
+                        ],
+                        "explanation": "**Why McCabe is Correct:**\n**Thomas J. McCabe** published 'A Complexity Measure' in IEEE Transactions on Software Engineering in 1976."
+                    }
+                ]
+            }
+        ]
+    },
+    "14": {
+        "title": "Case 14: CASE Tools & Software Configuration Management (SCM)",
+        "episodes": [
+            {
+                "title": "Module 1: Computer-Aided Software Engineering (CASE) Tools",
+                "blocks": [
+                    {
+                        "type": "markdown",
+                        "content": "Building complex software without automated tooling is like constructing a modern skyscraper using only hand chisels. **CASE Tools** automate software engineering processes across the lifecycle."
+                    },
+                    {
+                        "type": "objective",
+                        "title": "Module Objective",
+                        "content": "Classify Upper, Lower, and Integrated CASE tools, and master Software Configuration Items, Baselines, and CCB Change Control."
+                    },
+                    {
+                        "type": "concept",
+                        "title": "The Taxonomy of CASE Tools",
+                        "content": "- **Upper CASE Tools:** Assist during early lifecycle phases (Business planning, Requirements elicitation, DFD/UML design modeling, Project scheduling). Focus is on analysis and architectural specification.\n- **Lower CASE Tools:** Assist during later lifecycle phases (Code compilation, automated code generation, unit test runners, dynamic profiling, reverse engineering).\n- **Integrated CASE (I-CASE) Tools:** Unified environments that link upper and lower CASE tools through a centralized shared project repository and metadata dictionary, enabling end-to-end requirement-to-code traceability."
+                    },
+                    {
+                        "type": "micro_challenge",
+                        "title": "CASE Tool Classification",
+                        "question": "A visual UML modeling tool (like Enterprise Architect or StarUML) used by software analysts to draw Use Case and Class Diagrams during early requirements and design phases is classified as a:",
+                        "options": [
+                            "Lower CASE Tool",
+                            "Upper CASE Tool",
+                            "Hardware Emulator",
+                            "Decompiler"
+                        ],
+                        "answer": 1,
+                        "explanation": "**Why Upper CASE Tool is Correct:**\nTools supporting the early upstream phases of software development (analysis and design) are **Upper CASE Tools**."
+                    }
+                ]
+            },
+            {
+                "title": "Module 2: SCM Fundamentals, Baselines & Configuration Items",
+                "blocks": [
+                    {
+                        "type": "markdown",
+                        "content": "**Software Configuration Management (SCM)** is the disciplined engineering umbrella activity that tracks, controls, and audits changes across the software lifecycle."
+                    },
+                    {
+                        "type": "concept",
+                        "title": "Software Configuration Items (SCIs)",
+                        "content": "An SCI is an atomic, approved work product that is placed under formal version control:\n- Requirements Documents (SRS)\n- Design Specifications & Architectural Models\n- Source Code modules & Database DDL scripts\n- Test Plans, Test Cases & Test Scripts\n- Executable binaries, configuration YAML files, and user documentation."
+                    },
+                    {
+                        "type": "concept",
+                        "title": "The Concept of a Baseline",
+                        "content": "- An IEEE standard **Baseline** is a specification or work product that has been formally reviewed and agreed upon, which thereafter serves as the basis for further development, and which can only be modified through formal change control procedures.\n- **Major SCM Baselines:**\n  1. **Functional Baseline:** Approved System Requirements Specification.\n  2. **Allocated (Design) Baseline:** Approved Architectural and Detailed Design specifications.\n  3. **Product Baseline:** Approved, tested source code and release artifacts ready for shipment."
+                    },
+                    {
+                        "type": "fill_in_the_blank",
+                        "title": "SCM Baseline Definition",
+                        "question": "A formally reviewed and agreed-upon version of a software configuration item that serves as the basis for further development and can only be changed via formal approval is called a _____.\n\nAnswer: _____",
+                        "answer": "Baseline",
+                        "alternatives": [
+                            "Baseline",
+                            "SCM Baseline"
+                        ],
+                        "explanation": "**Why Baseline is Correct:**\nA **Baseline** establishes an immutable benchmark against which subsequent changes are evaluated."
+                    }
+                ]
+            },
+            {
+                "title": "Module 3: Change Control Process & SCM Audits",
+                "blocks": [
+                    {
+                        "type": "markdown",
+                        "content": "Uncontrolled change leads to chaos. The **Change Control Board (CCB)** governs the baseline modification lifecycle."
+                    },
+                    {
+                        "type": "concept",
+                        "title": "The Formal Change Control Lifecycle",
+                        "content": "1. **Change Request (CR):** Submitted by stakeholder specifying defect or enhancement.\n2. **Impact Analysis:** Systems engineer assesses technical impact, cost, schedule, and regression risk.\n3. **CCB Review:** The **Change Control Board** (comprising project manager, architect, QA lead, and client representative) reviews the CR and renders a verdict: `Approved`, `Rejected`, or `Deferred`.\n4. **Check-out & Modify:** Engineer checks out SCI to an isolated development branch.\n5. **Verification & Audit:** Changes verified through unit and regression testing.\n6. **Check-in & Baseline Update:** Modified SCI committed to the new baseline revision."
+                    },
+                    {
+                        "type": "concept",
+                        "title": "Configuration Audits: FCA vs PCA",
+                        "content": "- **Functional Configuration Audit (FCA):** Formal audit verifying that the software has successfully achieved all functional performance requirements specified in the baselined SRS.\n- **Physical Configuration Audit (PCA):** Formal audit verifying that all design documents, source files, release notes, and build scripts are complete, correctly packaged, and archived."
+                    },
+                    {
+                        "type": "micro_challenge",
+                        "title": "CCB Authority",
+                        "question": "What is the full name of the formal governing body responsible for reviewing, evaluating, approving, or rejecting proposed modifications to baselined configuration items?",
+                        "options": [
+                            "Central Computing Bureau",
+                            "Change Control Board",
+                            "Continuous Code Builder",
+                            "Core Compiler Base"
+                        ],
+                        "answer": 1,
+                        "explanation": "**Why Change Control Board is Correct:**\nThe **Change Control Board (CCB)** is the formal authority in SCM that governs modifications to baselined assets."
+                    }
+                ]
+            },
+            {
+                "title": "Module 4: SCM Governance Dilemma",
+                "blocks": [
+                    {
+                        "type": "markdown",
+                        "content": "Let us evaluate SCM process compliance in an enterprise crisis."
+                    },
+                    {
+                        "type": "scenario_decision",
+                        "title": "SCM Dilemma: The Rogue Production Hotfix",
+                        "scenario": "A senior developer detects an off-by-one bug 2 hours before a major product release. To save time, they push a direct commit to the production release branch without logging a Change Request, without CCB review, and without notifying QA.",
+                        "question": "As Software Configuration Manager, what action must you take?",
+                        "options": [
+                            "Praise the developer for moving fast.",
+                            "Halt the release pipeline: revert the unauthorized commit, create a formal Emergency Change Request with impact analysis, run automated regression tests, and convene an expedited CCB sign-off.",
+                            "Delete the entire git repository.",
+                            "Allow it, but ask the developer to write a comment in the code next week."
+                        ],
+                        "answer": 1,
+                        "rationale": "**Why SCM Change Control Must Not Be Bypassed:**\nUnreviewed direct commits to release baselines bypass regression testing, break version traceability, and frequently introduce catastrophic side-effects. Emergency change procedures exist to fast-track hotfixes safely without sacrificing regression verification."
+                    },
+                    {
+                        "type": "fill_in_the_blank",
+                        "title": "Configuration Audit Type",
+                        "question": "The audit that formally verifies whether the completed software meets all functional requirements stated in the SRS is the _____ Configuration Audit.\n\nAnswer: _____",
+                        "answer": "Functional",
+                        "alternatives": [
+                            "Functional",
+                            "Functional Configuration Audit",
+                            "FCA"
+                        ],
+                        "explanation": "**Why Functional is Correct:**\nThe **Functional Configuration Audit (FCA)** verifies functional requirement compliance, while the **Physical Configuration Audit (PCA)** verifies physical packaging and documentation completeness."
+                    }
+                ]
+            }
+        ]
+    },
+    "15": {
+        "title": "Case 15: Capstone Investigation: Mission-Critical Failure Forensics",
+        "episodes": [
+            {
+                "title": "Module 1: Forensic Case 1: The Therac-25 Disaster (1985-1987)",
+                "blocks": [
+                    {
+                        "type": "problem",
+                        "title": "Catastrophe in the Radiation Clinic",
+                        "content": "Between 1985 and 1987, the Therac-25 radiation therapy medical accelerator delivered catastrophic massive radiation overdoses (up to 20,000 rads\u2014100 times the lethal threshold) to 6 cancer patients, killing several and permanently disfiguring others. It remains history's most harrowing case study in software engineering negligence."
+                    },
+                    {
+                        "type": "objective",
+                        "title": "Forensic Objective",
+                        "content": "Dissect the root causes of the Therac-25 radiation accidents, the Ariane 5 rocket explosion, and the Boeing 737 MAX MCAS disaster, and internalize the ACM/IEEE Software Engineering Code of Ethics."
+                    },
+                    {
+                        "type": "concept",
+                        "title": "Therac-25: Software Root Causes (Nancy Leveson Investigation)",
+                        "content": "1. **Removal of Hardware Safety Interlocks:** In older models (Therac-6, Therac-20), physical electromechanical switches physically blocked high-power electron beams if the tungsten turntable was misaligned. In Therac-25, management removed all hardware interlocks to cut costs, relying 100% on software.\n2. **Software Race Condition (The 8-Second Bug):** When an experienced operator rapidly typed 'X' (25 MeV X-ray mode), realized an error, hit 'Up Arrow' to edit, selected 'E' (electron mode), and hit Enter within 8 seconds, the software reset internal mode flags while leaving the turntable motor drive command queued. The machine fired a raw 25 MeV electron beam directly into patients without the tungsten scattering target in place!\n3. **Overconfidence & Flawed Testing:** Management refused to believe operator complaints for over a year, claiming 'the software is fail-safe'."
+                    },
+                    {
+                        "type": "micro_challenge",
+                        "title": "Therac-25 Safety Anti-Pattern",
+                        "question": "What critical system engineering mistake allowed the Therac-25 software bug to cause catastrophic patient fatalities, which had been prevented in earlier models?",
+                        "options": [
+                            "Using the Linux kernel",
+                            "Removing physical hardware electromechanical safety interlocks in complete reliance on unverified software logic",
+                            "Using 32-bit floating point numbers",
+                            "Allowing patients to operate the machine"
+                        ],
+                        "answer": 1,
+                        "explanation": "**Why Removal of Hardware Interlocks is Correct:**\nIn safety-critical engineering, software must NEVER be the sole safeguard against catastrophic physical harm. Hardware interlocks are mandatory fail-safes."
+                    }
+                ]
+            },
+            {
+                "title": "Module 2: Forensic Case 2: Ariane 5 Flight 501 Disaster (1996)",
+                "blocks": [
+                    {
+                        "type": "problem",
+                        "title": "The $370 Million Fireball",
+                        "content": "On June 4, 1996, the European Space Agency's maiden flight of the Ariane 5 launcher ended in catastrophic destruction 37 seconds after liftoff. The rocket veered 90 degrees off trajectory, aerodynamic forces ripped the boosters apart, and the onboard flight computer triggered auto-destruct, vaporizing $370 million in scientific satellite cargo."
+                    },
+                    {
+                        "type": "concept",
+                        "title": "Ariane 5: Technical Root Cause Analysis",
+                        "content": "1. **Unchecked Integer Overflow Exception:** An internal software routine measuring horizontal bias velocity converted a 64-bit floating point number into a 16-bit signed integer in Ada.\n2. **Unvalidated Software Reuse:** The inertial reference code was copied directly from Ariane 4 without re-verifying trajectory assumptions. Ariane 5 was significantly faster, generating horizontal velocity values exceeding the maximum 16-bit signed limit ($+32,767$).\n3. **Unhandled Exception & Dual Shutdown:** The overflow triggered an Ada software exception. Because developers had disabled exception handling for that variable to optimize CPU performance, the active computer panicked and shut down. The backup computer, running identical code, hit the exact same overflow and crashed a few milliseconds later!\n4. **Diagnostic Data Misinterpretation:** The crash diagnostic dump was fed into the flight nozzle actuator bus, which interpreted the error dump bytes as flight trajectory commands and slammed nozzles to full mechanical deflection."
+                    },
+                    {
+                        "type": "micro_challenge",
+                        "title": "Ariane 5 Root Cause",
+                        "question": "What programming flaw triggered the catastrophic flight failure of Ariane 5 Flight 501?",
+                        "options": [
+                            "Buffer overflow in C string manipulation",
+                            "Unhandled 64-bit float to 16-bit signed integer conversion overflow due to unverified code reuse from Ariane 4",
+                            "Memory leak in C++ destructor",
+                            "Network packet loss over WiFi"
+                        ],
+                        "answer": 1,
+                        "explanation": "**Why Integer Conversion Overflow is Correct:**\nThe failure was caused by converting a 64-bit floating point horizontal velocity value into a 16-bit signed integer without exception handling, exceeding the 32,767 integer boundary."
+                    }
+                ]
+            },
+            {
+                "title": "Module 3: Forensic Case 3: Boeing 737 MAX MCAS (2018-2019)",
+                "blocks": [
+                    {
+                        "type": "problem",
+                        "title": "346 Lives Lost in Dual Aviation Disasters",
+                        "content": "In October 2018 and March 2019, Lion Air Flight 610 and Ethiopian Airlines Flight 302 crashed into the sea and ground, killing all 346 passengers and crew. Both crashes were directly traced to an automated flight control system called MCAS (Maneuvering Characteristics Augmentation System)."
+                    },
+                    {
+                        "type": "concept",
+                        "title": "MCAS: Software Engineering & System Architecture Failures",
+                        "content": "1. **Single Point of Failure (SPOF):** Despite the aircraft possessing two physical Angle-of-Attack (AoA) vanes on either side of the cockpit, MCAS was designed to read from only **one sensor at a time**, alternating between flights. When an AoA sensor failed or was damaged, MCAS received false stall data.\n2. **Lack of Redundancy & Sanity Checks:** The software performed zero cross-checking between the two sensors. It blindly trusted a single faulty reading without sanity checking sensor rate-of-change.\n3. **Runaway Override of Human Pilots:** MCAS repeatedly trimmed the horizontal stabilizer nose-down every few seconds, overpowering the pilots' physical manual pull on the control column until the aircraft entered an unrecoverable dive.\n4. **Concealment from Documentation:** Boeing omitted all mention of MCAS from flight crew manuals and training simulators to avoid costly FAA simulator recertification requirements."
+                    },
+                    {
+                        "type": "micro_challenge",
+                        "title": "MCAS Architectural Flaw",
+                        "question": "What fundamental fault-tolerant architectural principle was violated in the original design of the Boeing 737 MAX MCAS subsystem?",
+                        "options": [
+                            "Absence of sensor redundancy and cross-validation, creating a fatal Single Point of Failure (SPOF)",
+                            "Using Python instead of Assembly",
+                            "Having too many pilot control switches",
+                            "Using satellite internet"
+                        ],
+                        "answer": 0,
+                        "explanation": "**Why Absence of Sensor Redundancy (SPOF) is Correct:**\nRelying on a single sensor without comparison against a redundant secondary sensor violates the fundamental safety principle: **Never permit a single point of failure in life-critical systems**."
+                    }
+                ]
+            },
+            {
+                "title": "Module 4: Professional Ethics & The Software Engineer's Duty",
+                "blocks": [
+                    {
+                        "type": "markdown",
+                        "content": "Software now controls the pacemakers, power grids, banking ledgers, and flight controls of human civilization. Software Engineering is not just a commercial skill\u2014it is a solemn ethical trust."
+                    },
+                    {
+                        "type": "concept",
+                        "title": "ACM / IEEE-CS Software Engineering Code of Ethics",
+                        "content": "The 8 Core Principles every professional software engineer must uphold:\n1. **PUBLIC:** Software engineers shall act consistently with the public interest. (The safety, health, and welfare of the public is paramount).\n2. **CLIENT AND EMPLOYER:** Act in a manner that is in the best interests of client and employer, consistent with public interest.\n3. **PRODUCT:** Ensure that products and related modifications meet the highest professional standards possible.\n4. **JUDGMENT:** Maintain integrity and independence in professional judgment; never sign off on unsafe systems.\n5. **MANAGEMENT:** Software engineering managers shall subscribe to and promote an ethical approach to project management.\n6. **PROFESSION:** Advance the integrity and reputation of the profession.\n7. **COLLEAGUES:** Be fair to and supportive of colleagues.\n8. **SELF:** Participate in lifelong learning and promote an ethical approach to the practice of the profession."
+                    },
+                    {
+                        "type": "scenario_decision",
+                        "title": "The Ethical Whistleblower Dilemma",
+                        "scenario": "You are the Senior Safety Software Engineer at an autonomous vehicle company. Your sensor fusion tests reveal an unhandled edge case: in heavy rain at night, the braking algorithm fails to detect pedestrians 14% of the time. The CEO orders you to delete the test reports and sign the safety certification immediately so the company can beat its quarterly IPO deadline.",
+                        "question": "Under the ACM/IEEE Software Engineering Code of Ethics, what is your mandatory professional course of action?",
+                        "options": [
+                            "Sign the safety certificate; employees must obey management unconditionally.",
+                            "Refuse to sign the safety certification: document the 14% failure rate formally, escalate to company safety officers and the board of directors, and if ignored, blow the whistle to public safety regulators to protect human life.",
+                            "Quietly quit your job and pretend you never saw the data.",
+                            "Change the test data to 100% pass to get your IPO stock bonus."
+                        ],
+                        "answer": 1,
+                        "rationale": "**Why Principle 1 (PUBLIC INTEREST) Trumps Employer Loyalty:**\nPrinciple 1 of the ACM/IEEE Code of Ethics states unequivocally: **'Software engineers shall act consistently with the public interest.'** When human life is in danger, an engineer's ethical duty to public safety supersedes employer demands, corporate deadlines, and personal financial gain."
+                    },
+                    {
+                        "type": "fill_in_the_blank",
+                        "title": "First Ethical Principle",
+                        "question": "In the ACM/IEEE-CS Software Engineering Code of Ethics, Principle 1 dictates that software engineers must act consistently with the _____ interest.\n\nAnswer: _____",
+                        "answer": "Public",
+                        "alternatives": [
+                            "Public",
+                            "Public interest"
+                        ],
+                        "explanation": "**Why Public is Correct:**\nPrinciple 1 establishes that the **Public** interest is the paramount standard above all commercial and employer considerations."
+                    }
+                ]
+            }
+        ]
+    }
+}

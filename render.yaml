@@ -1,0 +1,19 @@
+services:
+  - type: web
+    name: engineering-story-labs
+    runtime: docker
+    plan: starter
+    healthCheckPath: /_stcore/health
+    envVars:
+      - key: PLATFORM_AUTH_MODE
+        value: multiuser
+      - key: PLATFORM_DB_PATH
+        value: /app/data/platform.db
+      - key: RUNNER_MAX_CONCURRENCY
+        value: "4"
+      - key: PLATFORM_SECRET_KEY
+        generateValue: true
+    disk:
+      name: story-labs-data
+      mountPath: /app/data
+      sizeGB: 1

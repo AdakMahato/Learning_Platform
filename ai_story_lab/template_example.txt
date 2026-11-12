@@ -1,0 +1,44 @@
+
+Every module MUST contain at least 8-15 blocks, distributed across multiple episodes.
+Crucially, you MUST use the new "visual_stepper" block to illustrate algorithms step-by-step.
+Use hex codes for colors (e.g., #10b9811a), NEVER use rgba().
+
+Example block structure for an algorithm step-by-step:
+{
+    "type": "visual_stepper",
+    "title": "Interactive: Algorithm Step-by-Step",
+    "height": 450,
+    "steps": [
+        {
+            "explanation": "Step 1: ...",
+            "mermaid_code": 'graph TD\n  classDef node fill:#10b9811a;\n  A["Start"]:::node'
+        },
+        ...
+    ]
+}
+
+Other block types:
+- "markdown": For story context and heavy text. Use github alerts like > [!WARNING] or > [!NOTE]
+- "objective": For module goals.
+- "problem": For think-first challenges.
+- "concept": For theory and explanations.
+- "code_lab": For interactive Python coding (must include starter_code, solution_code, expected_output, explanation)
+
+Create multi-episode cases! For example:
+"1": {
+    "title": "Case 01",
+    "episodes": [
+        {
+            "title": "Module 1: Theory",
+            "blocks": [...]
+        },
+        {
+            "title": "Module 2: The Algorithm",
+            "blocks": [...] # Contains visual_stepper
+        },
+        {
+            "title": "Module 3: Implementation",
+            "blocks": [...] # Contains code_lab
+        }
+    ]
+}

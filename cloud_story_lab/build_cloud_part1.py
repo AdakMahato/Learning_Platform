@@ -1,0 +1,561 @@
+import json
+import os
+
+CLOUD_PART1 = {}
+
+# CASE 00: Computing Evolution: From Mainframes to the Cloud
+CLOUD_PART1["0"] = {
+    "title": "Case 00: Computing Evolution: From Mainframes to the Cloud",
+    "episodes": [
+        {
+            "title": "Module 1: Evolution of Computing Paradigms",
+            "blocks": [
+                {
+                    "type": "markdown",
+                    "content": "Before the cloud era, computational power was bound to physical hardware boxes. Over six decades, computing evolved through five major structural paradigms: Centralized Mainframes, Distributed Client-Server, Cluster Computing, Grid Computing, and Utility/Cloud Computing."
+                },
+                {
+                    "type": "objective",
+                    "title": "Module Objective",
+                    "content": "Trace the historical continuum from mainframes to cloud computing, understand business drivers transforming CapEx into OpEx, and identify the primary global cloud hyperscalers."
+                },
+                {
+                    "type": "concept",
+                    "title": "The Evolutionary Arc of Computing",
+                    "content": "1. **Centralized Mainframe Computing (1950s-1970s):** Monolithic mainframes (IBM System/360) accessed via passive 'dumb terminals'. Zero local compute; single point of failure.\n2. **Client-Server Architecture (1980s-1990s):** Decentralized PCs (clients) processing presentation and business logic, querying centralized database servers over LANs.\n3. **Cluster Computing (Late 1990s):** Arrays of low-cost commodity PCs interconnected via high-speed dedicated LANs acting as a single integrated compute resource (Beowulf clusters).\n4. **Grid Computing (Early 2000s):** Geographically distributed, heterogeneous computing resources dynamically federated across administrative domains to solve massive scientific challenges (e.g., SETI@home, CERN LHC data processing).\n5. **Cloud Computing (2006-Present):** On-demand delivery of compute, storage, databases, and networking over the internet with pay-as-you-go utility pricing, abstracted away from physical hardware."
+                },
+                {
+                    "type": "visual",
+                    "title": "The Computing Evolution Continuum",
+                    "code": """graph LR
+  MF["1960s: Monolithic Mainframe"] --> CS["1980s: Client-Server LAN"]
+  CS --> CL["1990s: Cluster Computing (Beowulf)"]
+  CL --> GR["2000s: Grid Computing (Globus)"]
+  GR --> CC["2006+: Utility Cloud Computing (AWS/GCP/Azure)"]"""
+                },
+                {
+                    "type": "micro_challenge",
+                    "title": "Computing Paradigm Identification",
+                    "question": "Which computing paradigm connects geographically dispersed, heterogeneous computing nodes owned by different institutions to execute collaborative scientific jobs?",
+                    "options": [
+                        "Cluster Computing",
+                        "Grid Computing",
+                        "Mainframe Time-Sharing",
+                        "Edge Gateway"
+                    ],
+                    "answer": 1,
+                    "explanation": "**Why Grid Computing is Correct:**\n**Grid Computing** federates autonomous, heterogeneous, and geographically distributed resources across multiple institutions without centralized ownership."
+                }
+            ]
+        },
+        {
+            "title": "Module 2: Cluster Computing vs Grid Computing",
+            "blocks": [
+                {
+                    "type": "markdown",
+                    "content": "Both Cluster and Grid computing aggregate multiple machines to achieve high-performance compute (HPC), but their physical architectures, network latencies, and resource homogeneity differ fundamentally."
+                },
+                {
+                    "type": "concept",
+                    "title": "Structural Comparison: Clusters vs Grids",
+                    "content": "| Characteristic | Cluster Computing | Grid Computing |\n| :--- | :--- | :--- |\n| **Geographic Span** | Single physical room / data center rack | Worldwide / Multi-institutional |\n| **Node Homogeneity** | Identical OS, CPU, RAM (Homogeneous) | Diverse architectures & OS (Heterogeneous) |\n| **Interconnect** | Ultra-low latency InfiniBand / Gigabit Ethernet | Public Internet / High-latency WAN |\n| **System Image** | Single System Image (SSI) view | Decentralized resource brokering (Globus Toolkit) |\n| **Resource Ownership** | Single organization | Multiple independent administrative domains |\n| **Failure Tolerance** | Nodes assumed tightly bound; often checkpointed | High node churn; dynamic job re-dispatch |"
+                },
+                {
+                    "type": "diagram_critique",
+                    "title": "Spot the Architectural Mismatch",
+                    "scenario": "A research lab designs a cluster compute system for real-time molecular dynamics simulations:",
+                    "code": """graph TD
+  M1["Master Scheduler (New York)"] -->|Public 4G Cellular Link| W1["Worker Node (Tokyo: ARM Linux)"]
+  M1 -->|Satellite WAN| W2["Worker Node (London: x86 Windows)"]
+  M1 -->|Residential DSL| W3["Worker Node (Sydney: M3 Mac)"]""",
+                    "question": "Why is this architecture a Grid rather than a Cluster, and why will it fail for tightly coupled parallel computing?",
+                    "options": [
+                        "It uses too many modern CPUs.",
+                        "It connects heterogeneous hardware over high-latency, variable WAN/cellular links with zero Single System Image (SSI), making tightly synchronized MPI inter-process communication impossible.",
+                        "Linux cannot communicate with Windows.",
+                        "Master schedulers must always be in London."
+                    ],
+                    "answer": 1,
+                    "remedy": "**Remediation:**\nTightly coupled cluster algorithms (e.g., MPI parallel matrix multiplications) require microsecond-latency InfiniBand or dedicated Gigabit switches connecting homogeneous nodes in the same server rack. High-latency WAN connections with heterogeneous operating systems constitute a **Grid**, which is only suitable for loosely coupled embarrassingly parallel tasks."
+                }
+            ]
+        },
+        {
+            "title": "Module 3: The XaaS Spectrum & Business Drivers",
+            "blocks": [
+                {
+                    "type": "markdown",
+                    "content": "Why did global enterprises abandon private data centers for the cloud? The transformation is driven by fundamental economics and the 'Everything-as-a-Service' (XaaS) service spectrum."
+                },
+                {
+                    "type": "concept",
+                    "title": "Core Business Drivers for Cloud Migration",
+                    "content": "1. **CapEx to OpEx Shift:** Eliminates upfront Capital Expenditure (buying multimillion-dollar server racks, diesel generators, chillers) in favor of predictable Operational Expenditure (pay-as-you-go).\n2. **Elasticity & Agility:** Spin up 1,000 servers in 2 minutes for a flash sale; terminate them an hour later.\n3. **Global Footprint:** Deploy applications across 30+ geographic regions in minutes with single-digit millisecond latency to global users.\n4. **High Availability & Disaster Recovery:** Hyperscalers build automated data center redundancy across isolated Availability Zones.\n\n### The Hyperscaler Landscape:\n- **Amazon Web Services (AWS):** Pioneer and market leader (~31% global market share).\n- **Microsoft Azure:** Enterprise leader deeply integrated with Active Directory and Windows Server ecosystems (~25%).\n- **Google Cloud Platform (GCP):** Leader in Kubernetes, big data analytics, and machine learning infrastructure (~11%).\n- **Others:** IBM Cloud (hybrid enterprise), Oracle Cloud Infrastructure (OCI, database performance)."
+                },
+                {
+                    "type": "micro_challenge",
+                    "title": "Financial Cloud Paradigm",
+                    "question": "What is the primary financial accounting advantage of replacing on-premise hardware purchases with cloud utility billing?",
+                    "options": [
+                        "Shifting from Operational Expenditure (OpEx) to Capital Expenditure (CapEx)",
+                        "Shifting from Capital Expenditure (CapEx) to Operational Expenditure (OpEx)",
+                        "Eliminating all company tax liabilities",
+                        "Making software immune to software bugs"
+                    ],
+                    "answer": 1,
+                    "explanation": "**Why CapEx to OpEx is Correct:**\nCloud computing transforms large, risky, irreversible upfront capital expenditures (**CapEx**) into variable, usage-driven operational costs (**OpEx**)."
+                }
+            ]
+        },
+        {
+            "title": "Module 4: Cloud Impact on Education Systems & Strategic Dilemma",
+            "blocks": [
+                {
+                    "type": "markdown",
+                    "content": "Cloud computing has revolutionized conventional university education and distance learning, powering modern LMS platforms, virtualized student labs, and global MOOCs."
+                },
+                {
+                    "type": "concept",
+                    "title": "Cloud's Educational Transformation",
+                    "content": "- **SaaS Learning Management Systems (LMS):** Platforms like Canvas and Moodle run as multi-tenant cloud applications, automatically absorbing semester enrollment spikes and exam submission surges.\n- **Virtualized Cloud Laboratories:** Students launch ephemeral Linux environments, Jupyter notebooks, and GPU clusters directly in browsers (AWS Academy, Google Colab) without needing high-end local laptops.\n- **Global Distance Education & MOOCs:** Platforms like Coursera and edX stream lectures and auto-grade assignments for millions of students worldwide via globally distributed CDNs (CloudFront, Cloudflare)."
+                },
+                {
+                    "type": "scenario_decision",
+                    "title": "Strategic Dilemma: University Exam Portal Meltdown",
+                    "scenario": "A prestigious university hosts its final examinations on a physical on-premise server cluster. During finals week, 45,000 students log in simultaneously at 9:00 AM. The on-premise servers freeze, the database connection pool exhausts, and the portal crashes, forcing exam cancellations.",
+                    "question": "What architectural migration strategy should the university CIO mandate?",
+                    "options": [
+                        "Buy 20 more physical server blades and keep them plugged in all year just for finals week.",
+                        "Migrate the examination portal to a Cloud-Native architecture: host the frontend on an auto-scaling group behind an Elastic Load Balancer (ELB), store student submissions asynchronously via a managed queue (SQS), and use an auto-scaling serverless database (Aurora Serverless).",
+                        "Tell students to take paper exams only.",
+                        "Reboot the on-premise server every 10 minutes during the exam."
+                    ],
+                    "answer": 1,
+                    "rationale": "**Why Cloud Elasticity is the Optimal Strategy:**\nBuying on-premise physical servers to handle an annual 2-hour peak results in 99% idle hardware throughout the rest of the year. A **Cloud-Native Auto-Scaling Architecture** automatically scales out during the 9:00 AM spike and scales down to baseline afterwards, paying only for the compute used during exams."
+                },
+                {
+                    "type": "fill_in_the_blank",
+                    "title": "Financial Metric Abbreviation",
+                    "question": "The total financial cost of purchasing, deploying, operating, cooling, and maintaining an enterprise data center over its complete lifetime is abbreviated as _____.\n\nAnswer: _____",
+                    "answer": "TCO",
+                    "alternatives": ["TCO", "Total Cost of Ownership"],
+                    "explanation": "**Why TCO is Correct:**\n**TCO (Total Cost of Ownership)** accounts for all direct and hidden expenses (hardware, electricity, real estate, cooling, network transit, and admin salaries)."
+                }
+            ]
+        }
+    ]
+}
+
+# CASE 01: Cloud Architecture, Service Models & Deployment
+CLOUD_PART1["1"] = {
+    "title": "Case 01: Cloud Architecture, Service Models & Deployment",
+    "episodes": [
+        {
+            "title": "Module 1: The NIST Cloud Computing Standard",
+            "blocks": [
+                {
+                    "type": "markdown",
+                    "content": "To eliminate marketing hype, the US National Institute of Standards and Technology (NIST) published **NIST SP 800-145**, establishing the universally accepted definition of Cloud Computing."
+                },
+                {
+                    "type": "objective",
+                    "title": "Module Objective",
+                    "content": "Master the 5 essential characteristics of cloud computing, dissect the IaaS, PaaS, and SaaS service models, and analyze the Shared Responsibility Model."
+                },
+                {
+                    "type": "concept",
+                    "title": "The 5 Essential Characteristics of Cloud Computing (NIST)",
+                    "content": "A system is only formally a 'Cloud' if it satisfies all 5 characteristics:\n1. **On-Demand Self-Service:** A consumer can unilaterally provision computing capabilities (server time, network storage) automatically without requiring human interaction with each service provider.\n2. **Broad Network Access:** Capabilities are available over the network and accessed through standard mechanisms promoting heterogeneous thin or thick client platforms (phones, tablets, laptops, workstations).\n3. **Resource Pooling:** The provider's computing resources are pooled to serve multiple consumers using a **multi-tenant model**, with physical and virtual resources dynamically assigned and reassigned according to demand.\n4. **Rapid Elasticity:** Capabilities can be elastically provisioned and released—in some cases automatically—to scale rapidly outward and inward commensurate with demand.\n5. **Measured Service:** Resource usage is monitored, controlled, and reported, providing transparency for both the provider and consumer of the utilized service (utility metering)."
+                },
+                {
+                    "type": "micro_challenge",
+                    "title": "NIST Essential Characteristic Challenge",
+                    "question": "If an IT department requires a developer to submit a paper ticket and wait 3 weeks for an administrator to manually rack and configure a virtual machine, which NIST essential characteristic is violated?",
+                    "options": [
+                        "Broad Network Access",
+                        "On-Demand Self-Service",
+                        "Resource Pooling",
+                        "Measured Service"
+                    ],
+                    "answer": 1,
+                    "explanation": "**Why On-Demand Self-Service is Correct:**\n**On-Demand Self-Service** requires that developers can provision resources autonomously via an API, CLI, or web console within seconds, without human intervention from the provider."
+                }
+            ]
+        },
+        {
+            "title": "Module 2: Canonical Service Models: IaaS vs PaaS vs SaaS vs Serverless",
+            "blocks": [
+                {
+                    "type": "markdown",
+                    "content": "Cloud offerings are categorized by the level of abstraction they provide, dividing responsibilities between customer and provider."
+                },
+                {
+                    "type": "concept",
+                    "title": "The Cloud Service Hierarchy",
+                    "content": "| Model | What the Provider Manages | What You (The Customer) Manage | Industry Examples |\n| :--- | :--- | :--- | :--- |\n| **IaaS** *(Infrastructure)* | Physical Hardware, Power, Facilities, Hypervisor | OS, Middleware, Runtime, Data, Application Code | AWS EC2, GCP Compute Engine, Azure VMs |\n| **PaaS** *(Platform)* | Hardware, Hypervisor, OS, Runtime, Patching | Application Code, Data, Configuration | AWS Elastic Beanstalk, Google AppEngine, Heroku |\n| **SaaS** *(Software)* | Everything (Hardware to Application UI) | User accounts, Data input, Settings | Gmail, Google Docs, Salesforce, Microsoft 365 |\n| **FaaS / Serverless** | Event-driven container infrastructure, Scaling | Ephemeral stateless function code | AWS Lambda, Google Cloud Functions, Azure Functions |"
+                },
+                {
+                    "type": "visual",
+                    "title": "Control vs Management Abstraction",
+                    "code": """graph TD
+  subgraph SaaS ["SaaS (Lowest Control, Maximum Convenience)"]
+    S_APP["Application Managed by Provider (e.g. Google Drive)"]
+  end
+  subgraph PaaS ["PaaS (Moderate Control)"]
+    P_CODE["Customer writes code; Cloud manages OS & Runtime"]
+  end
+  subgraph IaaS ["IaaS (Maximum Control, Highest Responsibility)"]
+    I_VM["Customer configures OS, Security Patches, Middleware"]
+  end
+  SaaS --> PaaS --> IaaS"""
+                },
+                {
+                    "type": "micro_challenge",
+                    "title": "Service Model Classification",
+                    "question": "A developer writes a Python script and uploads it to Google AppEngine. AppEngine automatically handles server provisioning, operating system security patches, load balancing, and scaling from zero to 10,000 requests. What service model is this?",
+                    "options": [
+                        "IaaS (Infrastructure as a Service)",
+                        "PaaS (Platform as a Service)",
+                        "SaaS (Software as a Service)",
+                        "Bare Metal Colocation"
+                    ],
+                    "answer": 1,
+                    "explanation": "**Why PaaS is Correct:**\nIn **Platform as a Service (PaaS)**, the provider manages the hardware, virtualization, OS, and runtime environments, allowing developers to focus strictly on authoring application code."
+                }
+            ]
+        },
+        {
+            "title": "Module 3: The Cloud Security Shared Responsibility Model",
+            "blocks": [
+                {
+                    "type": "markdown",
+                    "content": "A common misconception is that migrating to the cloud makes security 100% the cloud provider's problem. In reality, cloud security is governed by the **Shared Responsibility Model**."
+                },
+                {
+                    "type": "concept",
+                    "title": "Security 'OF' the Cloud vs Security 'IN' the Cloud",
+                    "content": "- **Security OF the Cloud (Provider Responsibility):**\n  - Physical security of data centers (guards, biometric access, surveillance).\n  - Power, cooling, and environmental controls.\n  - Hardware maintenance, network switches, and hypervisor virtualization layer security.\n- **Security IN the Cloud (Customer Responsibility):**\n  - Guest operating system security updates and security patches (in IaaS).\n  - Network firewall configuration (Security Groups, Network ACLs).\n  - Identity and Access Management (IAM user passwords, multi-factor authentication).\n  - Customer data encryption at rest and in transit.\n  - Application vulnerability patching (SQL injection, XSS)."
+                },
+                {
+                    "type": "diagram_critique",
+                    "title": "Shared Responsibility Audit",
+                    "scenario": "A startup hosts an unpatched Ubuntu 18.04 EC2 instance on AWS with an open SSH port `0.0.0.0/0` and password `'admin123'`. Hackers breach the server and install a cryptocurrency miner. The CTO sues AWS, claiming: 'AWS is responsible for all server security under our cloud SLA!'",
+                    "question": "Why will the lawsuit be dismissed under the Shared Responsibility Model?",
+                    "options": [
+                        "AWS does not operate in the United States.",
+                        "Under IaaS, AWS secures the physical data centers and hypervisor ('Security OF the Cloud'), but the customer is 100% responsible for guest OS patching, strong passwords, and firewall port restrictions ('Security IN the Cloud').",
+                        "Cryptocurrency mining is legal on AWS.",
+                        "Ubuntu is owned by Microsoft."
+                    ],
+                    "answer": 1,
+                    "remedy": "**Remediation:**\nUnder the IaaS Shared Responsibility contract, the customer owns the guest OS configuration. Leaving SSH exposed to the global internet with weak credentials is an unequivocal customer security failure. The customer must configure Security Groups to whitelist trusted IPs and enforce key-pair SSH authentication."
+                }
+            ]
+        },
+        {
+            "title": "Module 4: Deployment Models & Cloud Bursting Dilemma",
+            "blocks": [
+                {
+                    "type": "markdown",
+                    "content": "Where does cloud infrastructure physically reside? NIST classifies cloud deployments into four topologies."
+                },
+                {
+                    "type": "concept",
+                    "title": "Cloud Deployment Topologies",
+                    "content": "1. **Public Cloud:** Infrastructure owned by a third-party hyperscaler (AWS, GCP) accessible to the general public over the internet with multi-tenant isolation.\n2. **Private Cloud:** Infrastructure provisioned for exclusive use by a single organization (on-premise VMware OpenStack or hosted single-tenant hardware). High control, high cost.\n3. **Community Cloud:** Shared exclusively by organizations with shared missions, regulatory requirements, or security compliance (e.g., US GovCloud for defense agencies).\n4. **Hybrid Cloud:** Composition of two or more distinct cloud infrastructures (e.g., on-premise private data center linked via AWS Direct Connect to a public cloud VPC)."
+                },
+                {
+                    "type": "scenario_decision",
+                    "title": "Engineering Dilemma: Black Friday Cloud Bursting",
+                    "scenario": "An e-commerce retailer maintains an on-premise private cloud that easily handles their baseline daily traffic of 10,000 requests/sec. However, on Black Friday, traffic surges to 120,000 requests/sec for 48 hours. Buying 10x more physical servers would bankrupt the company.",
+                    "question": "What hybrid cloud architectural strategy solves this capacity spike?",
+                    "options": [
+                        "Refuse extra orders and show an 'Out of Stock' banner on Black Friday.",
+                        "Implement **Cloud Bursting**: maintain steady baseline workloads on the on-premise private cloud, and configure automated orchestration to dynamically 'burst' overflow peak traffic into a public cloud (AWS/Azure) only when private utilization exceeds 85%.",
+                        "Migrate completely back to paper order catalogs.",
+                        "Overclock the on-premise CPU chips until they overheat."
+                    ],
+                    "answer": 1,
+                    "rationale": "**Why Cloud Bursting is Optimal:**\n**Cloud Bursting** is the textbook use case for hybrid cloud architectures. It leverages low-cost existing on-premise investments for regular baseline workloads, while harnessing the infinite on-demand elasticity of the public cloud to absorb short-term seasonal traffic spikes."
+                },
+                {
+                    "type": "fill_in_the_blank",
+                    "title": "NIST Deployment Model",
+                    "question": "A cloud deployment model shared exclusively by multiple organizations with common regulatory compliance, security, or mission goals is called a _____ Cloud.\n\nAnswer: _____",
+                    "answer": "Community",
+                    "alternatives": ["Community", "Community Cloud"],
+                    "explanation": "**Why Community Cloud is Correct:**\n**Community Clouds** allow distinct organizations with identical compliance policies (such as hospitals or government agencies) to pool resources securely."
+                }
+            ]
+        }
+    ]
+}
+
+# CASE 02: AWS Core Compute & Elasticity: EC2 Architecture
+CLOUD_PART1["2"] = {
+    "title": "Case 02: AWS Core Compute & Elasticity: EC2 Architecture",
+    "episodes": [
+        {
+            "title": "Module 1: AWS Global Infrastructure & EC2 Anatomy",
+            "blocks": [
+                {
+                    "type": "markdown",
+                    "content": "Amazon Web Services (AWS) powers over a third of the public internet. At its computational core lies **Amazon Elastic Compute Cloud (EC2)**, delivering resizable virtual compute capacity in the cloud."
+                },
+                {
+                    "type": "objective",
+                    "title": "Module Objective",
+                    "content": "Understand AWS Global Infrastructure (Regions vs Availability Zones), deconstruct EC2 instance families, evaluate pricing options (Spot, On-Demand, Reserved), and configure Security Groups."
+                },
+                {
+                    "type": "concept",
+                    "title": "AWS Global Infrastructure Hierarchy",
+                    "content": "- **Region:** A physical geographic location in the world containing multiple isolated data center clusters (e.g., `us-east-1` in N. Virginia, `eu-central-1` in Frankfurt).\n- **Availability Zone (AZ):** One or more discrete physical data centers within a Region, each with redundant power, networking, and cooling, connected by ultra-low-latency fiber (e.g., `us-east-1a`, `us-east-1b`). Faults in one AZ do not impact another.\n- **Edge Locations:** 450+ Points of Presence (PoPs) worldwide hosting Amazon CloudFront (CDN) to cache static and streaming content close to end users."
+                },
+                {
+                    "type": "concept",
+                    "title": "EC2 Instance Families Naming Convention",
+                    "content": "Example: `m6g.2xlarge`\n- `m` : **Instance Family** (`m` = General Purpose, `c` = Compute Optimized, `r` = Memory Optimized [RAM], `i` = Storage Optimized [IOPS], `p/g` = GPU Accelerated).\n- `6` : **Generation** (6th generation hardware).\n- `g` : **Processor Architecture** (`g` = AWS Graviton ARM, `i` = Intel Xeon, `a` = AMD EPYC).\n- `2xlarge` : **Instance Size** (determines vCPU count, RAM gigabytes, and network bandwidth)."
+                },
+                {
+                    "type": "micro_challenge",
+                    "title": "EC2 Family Selection",
+                    "question": "A data science team needs to train a deep learning transformer model requiring high-throughput CUDA tensor cores and high VRAM. Which EC2 instance family is specifically engineered for this workload?",
+                    "options": [
+                        "t4g (Burstable General Purpose)",
+                        "p4d / g5 (Accelerated GPU Compute)",
+                        "c6i (Compute Optimized without GPU)",
+                        "r6g (Memory Optimized without GPU)"
+                    ],
+                    "answer": 1,
+                    "explanation": "**Why p4d / g5 is Correct:**\nThe **P and G families** in EC2 contain dedicated NVIDIA Tensor Core GPUs engineered specifically for machine learning and heavy graphical rendering."
+                }
+            ]
+        },
+        {
+            "title": "Module 2: EC2 Instance Lifecycle & Purchasing Models",
+            "blocks": [
+                {
+                    "type": "markdown",
+                    "content": "EC2 provides diverse purchasing options that allow companies to slash cloud compute bills by up to 90% when matching workload characteristics to the appropriate billing tier."
+                },
+                {
+                    "type": "concept",
+                    "title": "The Four EC2 Pricing Paradigms",
+                    "content": "1. **On-Demand:** Pay for compute capacity by the second with zero long-term commitment. Highest hourly rate; ideal for spiky, unpredictable, or short-term development workloads.\n2. **Reserved Instances (RIs) & Savings Plans:** Commit to a steady state usage level for a 1-year or 3-year term. Up to 72% discount compared to On-Demand. Ideal for continuous production databases.\n3. **Spot Instances:** Bid on spare, unused EC2 capacity in AWS data centers for up to **90% discount** off On-Demand. Catch: AWS can reclaim the instance with a **2-minute interruption notice** when on-demand users need the capacity.\n4. **Dedicated Hosts:** Physical physical servers dedicated entirely to a single enterprise customer to satisfy strict software licensing (BYOL) or compliance requirements."
+                },
+                {
+                    "type": "micro_challenge",
+                    "title": "Spot Instance Applicability",
+                    "question": "Which type of workload is the ideal architectural fit for EC2 Spot Instances?",
+                    "options": [
+                        "A mission-critical emergency hospital patient telemetry database that can never tolerate a shutdown",
+                        "Stateless batch processing, video transcoding, and fault-tolerant distributed container workloads that can handle 2-minute interruption warnings",
+                        "An enterprise single-master MySQL server",
+                        "An interactive customer-facing live bank checkout session"
+                    ],
+                    "answer": 1,
+                    "explanation": "**Why Stateless Batch Processing is Correct:**\nBecause AWS can terminate Spot Instances with a **2-minute warning**, they must only be used for stateless, restartable, or fault-tolerant workloads like batch rendering, CI/CD builds, and big data clusters."
+                }
+            ]
+        },
+        {
+            "title": "Module 3: Amazon Machine Images (AMIs) & Instance Bundling",
+            "blocks": [
+                {
+                    "type": "markdown",
+                    "content": "How do you launch 50 identical web servers in 60 seconds? Through **Amazon Machine Images (AMIs)**."
+                },
+                {
+                    "type": "concept",
+                    "title": "What is an Amazon Machine Image (AMI)?",
+                    "content": "An AMI provides the information required to launch an instance:\n- **Root Volume Template:** A pre-configured operating system image (Amazon Linux 2023, Ubuntu, Windows Server), application server software, and dependencies.\n- **Launch Permissions:** Controls which AWS accounts can launch instances using this AMI (Public, Private, Shared).\n- **Block Device Mapping:** Specifies the volumes to attach to the instance when launched.\n\n### Golden Image Architecture:\nEngineering teams build a hardened 'Golden AMI' containing all corporate security agents, monitoring daemons, and pre-compiled runtimes so that new EC2 instances boot ready to serve traffic in seconds without running lengthy install scripts."
+                },
+                {
+                    "type": "concept",
+                    "title": "Security Groups: The State-Aware Packet Firewall",
+                    "content": "- An EC2 **Security Group** acts as a virtual firewall controlling inbound and outbound traffic at the instance level.\n- **Key Rules:**\n  - **Stateful:** If an inbound request is permitted (e.g., port 443 HTTPS), the outbound response is automatically permitted regardless of outbound rules.\n  - **Default Deny:** All inbound traffic is blocked by default until explicit Allow rules are defined.\n  - **No Deny Rules:** Security groups only contain **ALLOW** rules. (Explicit Deny is handled by Network ACLs at the subnet level)."
+                },
+                {
+                    "type": "fill_in_the_blank",
+                    "title": "Security Group Statefulness",
+                    "question": "Because EC2 Security Groups automatically permit the return response to an allowed incoming packet without requiring an explicit outbound rule, Security Groups are classified as _____ firewalls.\n\nAnswer: _____",
+                    "answer": "Stateful",
+                    "alternatives": ["Stateful", "State-aware"],
+                    "explanation": "**Why Stateful is Correct:**\n**Stateful** filtering means the firewall remembers established active connections and automatically permits returning traffic."
+                }
+            ]
+        },
+        {
+            "title": "Module 4: EC2 Cost Optimization Calculation Challenge",
+            "blocks": [
+                {
+                    "type": "markdown",
+                    "content": "Let us evaluate EC2 fleet cost engineering using real-world utility economics."
+                },
+                {
+                    "type": "calculation_challenge",
+                    "title": "Spot Fleet Cost Savings Calculation",
+                    "formula": "Cost = \\text{Hours} \\times (N_{on\\_demand} \\times P_{on\\_demand} + N_{spot} \\times P_{spot})",
+                    "problem": "A machine learning pipeline requires 10 compute instances running continuously for a 30-day month (720 hours).\n- An On-Demand instance costs $1.00 per hour.\n- A Spot instance costs $0.20 per hour (80% discount).\n\nThe cloud architect designs a blended Spot Fleet consisting of 2 On-Demand instances (for master coordination) and 8 Spot instances (for worker processing).\n\nWhat is the total monthly compute bill for this blended fleet?",
+                    "answer": "1872",
+                    "alternatives": ["1872", "$1872", "1872.00", "1,872"],
+                    "step_by_step": "**Mathematical Derivation:**\n1. Hourly cost of 2 On-Demand nodes = $2 \\times \\$1.00 = \\$2.00/hr$.\n2. Hourly cost of 8 Spot nodes = $8 \\times \\$0.20 = \\$1.60/hr$.\n3. Total hourly fleet cost = $\\$2.00 + \\$1.60 = \\$3.60/hr$.\n4. Monthly cost (720 hours) = $720 \\times \\$3.60 = \\$1,872$.\n*(Note: An unoptimized 100% On-Demand fleet would cost $10 \\times 720 \\times \\$1.00 = \\$7,200$, saving $74% in total expenditure!)*"
+                },
+                {
+                    "type": "scenario_decision",
+                    "title": "Security Dilemma: Publicly Exposed Database Port",
+                    "scenario": "A junior engineer sets up an EC2 instance hosting a production PostgreSQL database. To allow their home computer to run migrations, they add an inbound rule: `Type: PostgreSQL, Port: 5432, Source: 0.0.0.0/0`. Two days later, automated ransomware encrypts the database.",
+                    "question": "What security remediation must be immediately applied to the Security Group?",
+                    "options": [
+                        "Keep `0.0.0.0/0` open but change the database port from 5432 to 5433.",
+                        "Revoke `0.0.0.0/0` immediately; place the database instance in a Private Subnet with no public IP, and restrict port 5432 inbound strictly to the Security Group ID of the backend web application tier or a secure Bastion/VPN host.",
+                        "Reboot the instance and pay the bitcoin ransom.",
+                        "Disable the firewall completely to make troubleshooting easier."
+                    ],
+                    "answer": 1,
+                    "rationale": "**Why Least Privilege & Private Subnets are Mandatory:**\nDatabases must NEVER be assigned public IP addresses or exposed to `0.0.0.0/0` (the entire public internet). Best practice mandates placing databases in **Private Subnets** and using **Security Group Chaining** (allowing port 5432 only from `sg-web-servers`)."
+                }
+            ]
+        }
+    ]
+}
+
+# CASE 03: Cloud Storage & Object Architecture: Amazon S3
+CLOUD_PART1["3"] = {
+    "title": "Case 03: Cloud Storage & Object Architecture: Amazon S3",
+    "episodes": [
+        {
+            "title": "Module 1: The Cloud Storage Triad: Block vs File vs Object",
+            "blocks": [
+                {
+                    "type": "markdown",
+                    "content": "Storage in the cloud is not one-size-fits-all. Understanding when to use Block Storage, File Storage, or Object Storage is the hallmark of a master cloud architect."
+                },
+                {
+                    "type": "objective",
+                    "title": "Module Objective",
+                    "content": "Contrast Block (EBS), File (EFS), and Object (S3) storage models, analyze S3 bucket architectures, and evaluate storage tiers and the 11 Nines durability guarantee."
+                },
+                {
+                    "type": "concept",
+                    "title": "The Cloud Storage Triad",
+                    "content": "| Dimension | Block Storage (AWS EBS) | File Storage (AWS EFS / FSx) | Object Storage (AWS S3) |\n| :--- | :--- | :--- | :--- |\n| **Core Concept** | Raw unformatted virtual hard drives divided into sectors/blocks | Hierarchical folder tree with POSIX permissions | Flat address space storing discrete objects with unique keys |\n| **Access Protocol** | High-speed low-level SAN protocol | NFS / SMB network protocols | HTTP / HTTPS RESTful API (`GET`, `PUT`, `DELETE`) |\n| **Performance** | Ultra-low latency (sub-millisecond), high IOPS | Moderate latency, shared across hundreds of VMs | High throughput, higher latency (100-200ms) |\n| **Best Used For** | OS boot drives, relational databases (PostgreSQL/MySQL) | Shared enterprise file shares, legacy apps, web content | Static web assets, videos, backups, data lakes, ML datasets |"
+                },
+                {
+                    "type": "micro_challenge",
+                    "title": "Storage Model Selection",
+                    "question": "Which cloud storage service model is specifically designed for storing exabytes of unstructured data (PDFs, images, backup archives) accessible directly via standard HTTPS URLs over the internet?",
+                    "options": [
+                        "Block Storage (AWS EBS)",
+                        "Object Storage (AWS S3)",
+                        "RAM Cache (Redis)",
+                        "CPU L2 Cache"
+                    ],
+                    "answer": 1,
+                    "explanation": "**Why Object Storage (S3) is Correct:**\n**Object Storage (Amazon S3)** is built for massive unstructured datasets with web-native HTTP addressing, unlimited scalability, and metadata tagging."
+                }
+            ]
+        },
+        {
+            "title": "Module 2: Amazon S3 Anatomy & Consistency Model",
+            "blocks": [
+                {
+                    "type": "markdown",
+                    "content": "Launched in 2006 as Amazon's first cloud service, **Amazon Simple Storage Service (S3)** provides an infinitely scalable, highly durable object repository."
+                },
+                {
+                    "type": "concept",
+                    "title": "Anatomy of an S3 Object",
+                    "content": "- **Bucket:** A top-level container for objects. Bucket names must be **globally unique** across all AWS accounts worldwide (e.g., `s3://my-global-bucket-2026/`).\n- **Key:** The unique identifier/path of the object within the bucket (e.g., `images/profile.png`). S3 has a flat hierarchy; slashes `/` are simply part of the string key.\n- **Value:** The raw file data payload (from 0 bytes up to a maximum single object size of **5 Terabytes**).\n- **Metadata:** Key-value pairs describing the object (content-type, MD5 hash, custom security tags).\n- **Strong Read-After-Write Consistency:** Since December 2020, S3 guarantees strong consistency: immediately after a successful `PUT` of a new object or overwrite of an existing object, any subsequent `GET` will return the latest version."
+                },
+                {
+                    "type": "visual",
+                    "title": "S3 Object URL Hierarchy",
+                    "code": """graph LR
+  CLIENT["Client Browser / REST API"] -->|HTTPS GET| URL["https://my-bucket.s3.us-east-1.amazonaws.com/reports/2026/q3.pdf"]
+  URL --> BUCKET["Bucket: my-bucket"]
+  BUCKET --> OBJ["Key: reports/2026/q3.pdf"]
+  OBJ --> DATA["Object: Payload Bytes + Metadata + Version ID"]"""
+                },
+                {
+                    "type": "micro_challenge",
+                    "title": "S3 Object Maximum Size",
+                    "question": "What is the maximum permissible file size of a single individual object stored in Amazon S3?",
+                    "options": [
+                        "5 Gigabytes",
+                        "5 Terabytes",
+                        "100 Megabytes",
+                        "Unlimited in a single file"
+                    ],
+                    "answer": 1,
+                    "explanation": "**Why 5 Terabytes is Correct:**\nWhile total bucket capacity is virtually infinite, the maximum size limit for any **single individual object** in S3 is **5 TB** (uploaded via multipart upload for files > 100 MB)."
+                }
+            ]
+        },
+        {
+            "title": "Module 3: S3 Storage Classes & Lifecycle Policies",
+            "blocks": [
+                {
+                    "type": "markdown",
+                    "content": "Storing all company data in the highest-performance tier is financially wasteful. S3 provides tiered storage classes and automated lifecycle transition rules."
+                },
+                {
+                    "type": "concept",
+                    "title": "The S3 Storage Class Spectrum",
+                    "content": "1. **S3 Standard:** Frequent access, millisecond latency, high throughput. Used for active website assets.\n2. **S3 Intelligent-Tiering:** Automatically moves objects between frequent and infrequent tiers based on access patterns without operational overhead or retrieval fees.\n3. **S3 Standard-IA (Infrequent Access):** Cheaper storage fee than Standard, but charges a retrieval fee per GB. For data accessed once a month (disaster recovery backups).\n4. **S3 Glacier Flexible Retrieval:** Low-cost cold storage for archives. Retrieval times range from 1 minute to 5 hours.\n5. **S3 Glacier Deep Archive:** Lowest cost storage in the entire cloud (~$0.00099 per GB/month). Retrieval takes 12 to 48 hours; ideal for 10-year regulatory compliance archives.\n\n### Automated Lifecycle Rules:\nExample policy: Transition objects from `S3 Standard` $\\rightarrow$ `S3 Standard-IA` after 30 days $\\rightarrow$ `S3 Glacier` after 90 days $\\rightarrow$ `Permanently Delete` after 365 days."
+                },
+                {
+                    "type": "fill_in_the_blank",
+                    "title": "S3 Lowest Cost Tier",
+                    "question": "The lowest-cost Amazon S3 storage class, designed for long-term data retention with retrieval times between 12 and 48 hours, is S3 Glacier _____ Archive.\n\nAnswer: _____",
+                    "answer": "Deep",
+                    "alternatives": ["Deep", "Deep Archive"],
+                    "explanation": "**Why Deep Archive is Correct:**\n**S3 Glacier Deep Archive** is Amazon's lowest-cost storage tier, engineered for long-term compliance records that are rarely retrieved."
+                }
+            ]
+        },
+        {
+            "title": "Module 4: S3 Durability Mathematics & Optimization Challenge",
+            "blocks": [
+                {
+                    "type": "markdown",
+                    "content": "Amazon S3 advertises **99.999999999% (11 Nines)** of data durability. What does this astronomical number actually mean mathematically?"
+                },
+                {
+                    "type": "concept",
+                    "title": "The Mathematics of 11 Nines of Durability",
+                    "content": "- **Durability:** The probability that an object stored in S3 will not be lost due to bit rot, hardware breakdown, or natural disaster.\n- $11\\text{ Nines} = 1 - 10^{-11} = 0.99999999999$.\n- This means that if you store **10,000,000 (10 million)** objects in S3, on average you can expect to lose a single object once every **10,000 years**!\n- S3 achieves this by redundantly distributing every object across a minimum of **3 physically separated Availability Zones**."
+                },
+                {
+                    "type": "calculation_challenge",
+                    "title": "Lifecycle Tiering Cost Savings Calculation",
+                    "problem": "A hospital generates 100 Terabytes (100,000 GB) of patient MRI scan archives each month. Medical laws mandate retaining these scans for 7 years.\n- Storing in **S3 Standard** costs $0.023 per GB/month ($2,300/mo).\n- Storing in **S3 Glacier Flexible Retrieval** costs $0.0036 per GB/month ($360/mo).\n\nIf the hospital applies an automated S3 lifecycle rule to move the 100 TB into Glacier after 30 days, how much money does the hospital save on storage fees across a 12-month period?",
+                    "formula": "Savings = \\text{Monthly\\ S3\\ Standard\\ Cost} - \\text{Monthly\\ Glacier\\ Cost}",
+                    "answer": "21340",
+                    "alternatives": ["21340", "$21,340", "21,340", "21340.00"],
+                    "step_by_step": "**Mathematical Derivation:**\n1. Month 1: The 100 TB resides in S3 Standard = $100,000 \\times 0.023 = \\$2,300$.\n2. Months 2 through 12 (11 months): Resides in Glacier = $100,000 \\times 0.0036 = \\$360/month$.\n3. Actual annual cost = $\\$2,300 + (11 \\times \\$360) = \\$2,300 + \\$3,960 = \\$6,260$.\n4. Cost if left in S3 Standard for all 12 months = $12 \\times \\$2,300 = \\$27,600$.\n5. Total Annual Savings = $\\$27,600 - \\$6,260 = \\$21,340$ (over 77% savings)."
+                },
+                {
+                    "type": "scenario_decision",
+                    "title": "Data Loss Disaster: Ransomware Deletion Defense",
+                    "scenario": "A rogue insider account compromises AWS credentials and runs a script that executes `s3:DeleteObject` across all buckets, destroying vital accounting files.",
+                    "question": "Which S3 configuration feature would have completely prevented the irreversible deletion of these objects?",
+                    "options": [
+                        "Making the bucket public.",
+                        "Enabling **S3 Versioning** combined with **MFA Delete** and **S3 Object Lock** (WORM: Write Once, Read Many).",
+                        "Changing the bucket name to a secret name.",
+                        "Increasing the EC2 instance size."
+                    ],
+                    "answer": 1,
+                    "rationale": "**Why S3 Object Lock & MFA Delete are Critical:**\n**S3 Object Lock** enforces a WORM (Write Once, Read Many) compliance policy that prevents objects from being overwritten or deleted by any user—even the root account—for a defined retention period. **MFA Delete** mandates physical two-factor authentication to purge versioned objects."
+                }
+            ]
+        }
+    ]
+}
+
+print("Built Cloud Part 1 (Cases 00-03) successfully!")
+
+with open('/Users/aadarshamahato/Downloads/LEARNING_PLATFORM/cloud_story_lab/cases_part1.json', 'w', encoding='utf-8') as f:
+    json.dump(CLOUD_PART1, f, indent=4)

@@ -1,0 +1,566 @@
+{
+    "8": {
+        "title": "Case 08: UML Structural Modeling: Class, Component & Deployment",
+        "episodes": [
+            {
+                "title": "Module 1: UML Use Case Modeling: Actors & Stereotypes",
+                "blocks": [
+                    {
+                        "type": "markdown",
+                        "content": "The Unified Modeling Language (UML), standardized by the Object Management Group (OMG) through the work of Grady Booch, Ivar Jacobson, and James Rumbaugh ('The Three Amigos'), provides the visual lingua franca for software engineering."
+                    },
+                    {
+                        "type": "objective",
+                        "title": "Module Objective",
+                        "content": "Master UML structural diagrams: Use Case diagrams with `<<include>>` vs `<<extend>>`, Class diagrams with deep relationship semantics, Component diagrams, and Deployment node architectures."
+                    },
+                    {
+                        "type": "concept",
+                        "title": "Anatomy of a UML Use Case Diagram",
+                        "content": "- **Actors:** Stick figures representing external roles (humans, third-party APIs, clock daemons) interacting with the system. Actors sit OUTSIDE the system boundary.\n- **Use Cases:** Ovals representing distinct functional capabilities provided by the system.\n- **System Boundary:** A rectangle enclosing all use cases, clearly demarcating scope.\n- **`<<include>>` Stereotype:** A mandatory, unconditional relationship. Use Case A *always* executes Use Case B as part of its normal operation (e.g., `Transfer Funds` includes `Validate Account Security`). Arrow points from Base to Included use case: `Base ..> <<include>> ..> Included`.\n- **`<<extend>>` Stereotype:** An optional, conditional relationship that only executes when a specific extension point condition is met (e.g., `Calculate Late Fee` extends `Return Rental Item` *only if* item is overdue). Arrow points from Extension to Base use case: `Extension ..> <<extend>> ..> Base`."
+                    },
+                    {
+                        "type": "micro_challenge",
+                        "title": "Include vs Extend Direction",
+                        "question": "In a UML Use Case Diagram, which relationship is mandatory and unconditional, and which way does its dashed dependency arrow point?",
+                        "options": [
+                            "`<<extend>>`, pointing from Base to Extension.",
+                            "`<<include>>`, pointing from Base use case toward the Included use case.",
+                            "`<<include>>`, pointing from Included use case toward the Base use case.",
+                            "`<<extend>>`, pointing from System Boundary to Actor."
+                        ],
+                        "answer": 1,
+                        "explanation": "**Why Include pointing from Base to Included is Correct:**\n`<<include>>` represents mandatory decomposition. The Base use case requires and incorporates the Included use case, so the dashed arrow with open arrowhead points from the **Base Use Case $\\rightarrow$ Included Use Case**."
+                    }
+                ]
+            },
+            {
+                "title": "Module 2: UML Class Diagrams & Relationship Semantics",
+                "blocks": [
+                    {
+                        "type": "markdown",
+                        "content": "The Class Diagram is the static architectural backbone of object-oriented systems, detailing class structures, feature visibility, and structural relationships."
+                    },
+                    {
+                        "type": "concept",
+                        "title": "Class Anatomy & Visibility Modifiers",
+                        "content": "A UML class box contains three compartments:\n1. **Top:** Class Name (italicized if abstract, `<<interface>>` stereotype if interface).\n2. **Middle:** Attributes formatted as: `visibility name: type = default_value`.\n3. **Bottom:** Operations formatted as: `visibility method_name(param: type): return_type`.\n\n### Visibility Modifiers:\n- `+` : **Public** (accessible by any class)\n- `-` : **Private** (accessible only within this class)\n- `#` : **Protected** (accessible by this class and its derived subclasses)\n- `~` : **Package / Internal** (accessible by classes within the same namespace/package)"
+                    },
+                    {
+                        "type": "concept",
+                        "title": "The Hierarchy of UML Relationships",
+                        "content": "1. **Association:** Simple structural connection (`---` or `--->` with multiplicity `1`, `0..*`).\n2. **Aggregation (Shared / Hollow Diamond $\\diamondsuit$):** Weak 'has-a' relationship. The part can exist independently of the whole (e.g., `University` has `Students`; if the University closes, the Students still exist).\n3. **Composition (Composite / Solid Diamond $\\blacklozenge$):** Strong 'part-of' ownership. The part's lifecycle is bound to the whole; if the whole is destroyed, the parts are destroyed (e.g., `Building` is composed of `Rooms`).\n4. **Generalization (Inheritance / Hollow Triangle $\\triangle$):** 'is-a' relationship pointing from subclass to superclass.\n5. **Realization (Implementation / Dashed Hollow Triangle $--\\triangleright$):** Class implementing an interface contract."
+                    },
+                    {
+                        "type": "diagram_critique",
+                        "title": "Spot the Modeling Antipattern: Aggregation vs Composition",
+                        "scenario": "A financial systems architect models an online banking ledger:",
+                        "code": "classDiagram\n  class BankAccount {\n    -accountId: String\n    -balance: Decimal\n    +deposit(amount: Decimal)\n  }\n  class TransactionRecord {\n    -transactionId: String\n    -timestamp: DateTime\n    -amount: Decimal\n  }\n  BankAccount o-- TransactionRecord : aggregates",
+                        "question": "Why is using hollow-diamond Aggregation (`o--`) a dangerous structural defect for a banking ledger?",
+                        "options": [
+                            "Transactions cannot have timestamps.",
+                            "A TransactionRecord has no independent lifecycle outside of its parent BankAccount; it must be modeled as Composition (`*--`), guaranteeing that destroying an account cascades or secures its immutable audit trail.",
+                            "Transactions must inherit from BankAccount using Generalization.",
+                            "BankAccount must have public balance fields."
+                        ],
+                        "answer": 1,
+                        "remedy": "**Remediation:**\nA bank transaction ledger record is an intrinsic, non-shareable component of an account. Using weak Aggregation implies a transaction can float independently without an owning account. It must be modeled with solid-diamond **Composition** (`*--`) to reflect strict lifecycle containment and audit trail integrity."
+                    }
+                ]
+            },
+            {
+                "title": "Module 3: UML Component Diagrams: Ball-and-Socket",
+                "blocks": [
+                    {
+                        "type": "markdown",
+                        "content": "Moving from logical code abstractions to modular software packages, **Component Diagrams** show software components, ports, and interface wiring."
+                    },
+                    {
+                        "type": "concept",
+                        "title": "Component Diagrams: The Ball-and-Socket Interface",
+                        "content": "- **Component (`<<component>>`):** An encapsulated, replaceable unit of software with well-defined interfaces.\n- **Provided Interface (Lollipop / Ball $\\multimap$):** An interface that the component realizes and offers to external callers.\n- **Required Interface (Socket / Cup $\\subset$):** An interface that the component requires from other services to perform its duties.\n- **Wiring:** When a ball fits into a socket, two independent components achieve seamless loose coupling."
+                    },
+                    {
+                        "type": "micro_challenge",
+                        "title": "UML Component Diagram Symbolism",
+                        "question": "In a UML Component Diagram, what does the 'lollipop' (ball) symbol signify?",
+                        "options": [
+                            "A Required Interface that the component depends on.",
+                            "A Provided Interface that the component exposes and implements.",
+                            "A physical network cable.",
+                            "A database deadlock state."
+                        ],
+                        "answer": 1,
+                        "explanation": "**Why Provided Interface is Correct:**\nThe ball (or lollipop) represents a **Provided Interface**\u2014the API operations that the component provides to the outside world. The socket (cup) represents a **Required Interface**."
+                    }
+                ]
+            },
+            {
+                "title": "Module 4: UML Deployment Diagrams: Nodes & Artifacts",
+                "blocks": [
+                    {
+                        "type": "markdown",
+                        "content": "**Deployment Diagrams** map software artifacts onto physical and virtual execution computing nodes."
+                    },
+                    {
+                        "type": "concept",
+                        "title": "Deployment Diagrams: Nodes & Artifacts",
+                        "content": "- **Node (`<<device>>` or `<<execution environment>>`):** A 3D cube representing computational hardware (server, sensor, mobile device) or software hosting platforms (Kubernetes pod, JVM, Docker container).\n- **Artifact:** Concrete physical files (e.g., `payment-service.jar`, `app.wasm`, database `.mdf`) running inside a node.\n- **Communication Path:** Solid lines connecting nodes labeled with network transport protocols (e.g., `\u00abTCP/IP\u00bb`, `\u00abHTTPS/REST\u00bb`, `\u00abgRPC\u00bb`)."
+                    },
+                    {
+                        "type": "visual_stepper",
+                        "title": "Microservices Deployment Diagram Walkthrough",
+                        "steps": [
+                            {
+                                "explanation": "Step 1: The Client Node represents end-user hardware (iOS/Android mobile devices) running the native client artifact.",
+                                "mermaid_code": "graph TD\n  subgraph ClientDevice [\"\u00abdevice\u00bb Mobile Client\"]\n    APP[\"\u00abartifact\u00bb banking-app.apk\"]\n  end"
+                            },
+                            {
+                                "explanation": "Step 2: Communication crosses the internet boundary via HTTPS to reach an API Gateway on the Cloud Ingress Node.",
+                                "mermaid_code": "graph TD\n  subgraph ClientDevice [\"\u00abdevice\u00bb Mobile Client\"]\n    APP[\"\u00abartifact\u00bb banking-app.apk\"]\n  end\n  subgraph IngressNode [\"\u00abexecution environment\u00bb Kubernetes Ingress\"]\n    GW[\"\u00abartifact\u00bb api-gateway.elf\"]\n  end\n  APP -->|\u00abHTTPS / TLS 1.3\u00bb| GW"
+                            },
+                            {
+                                "explanation": "Step 3: The API Gateway distributes requests across internal microservice nodes communicating over high-speed gRPC.",
+                                "mermaid_code": "graph TD\n  subgraph IngressNode [\"\u00abexecution environment\u00bb Kubernetes Ingress\"]\n    GW[\"\u00abartifact\u00bb api-gateway.elf\"]\n  end\n  subgraph ClusterNode1 [\"\u00abexecution environment\u00bb Auth Pod\"]\n    AUTH[\"\u00abartifact\u00bb auth-service.jar\"]\n  end\n  subgraph ClusterNode2 [\"\u00abexecution environment\u00bb Ledger Pod\"]\n    LEDGER[\"\u00abartifact\u00bb ledger-service.jar\"]\n  end\n  GW -->|\u00abgRPC\u00bb| AUTH\n  GW -->|\u00abgRPC\u00bb| LEDGER"
+                            },
+                            {
+                                "explanation": "Step 4: The Ledger Pod commits immutable state to a fault-tolerant Database Cluster Node running PostgreSQL with Raft replication.",
+                                "mermaid_code": "graph TD\n  subgraph ClusterNode2 [\"\u00abexecution environment\u00bb Ledger Pod\"]\n    LEDGER[\"\u00abartifact\u00bb ledger-service.jar\"]\n  end\n  subgraph DBNode [\"\u00abdevice\u00bb Database Server\"]\n    DB[(\"\u00abartifact\u00bb postgresql.data\")]\n  end\n  LEDGER -->|\u00abTCP/IP Port 5432\u00bb| DB"
+                            }
+                        ]
+                    },
+                    {
+                        "type": "fill_in_the_blank",
+                        "title": "UML Visibility Modifier",
+                        "question": "In a UML class diagram attribute specification, the character symbol used to declare an attribute with **Protected** visibility is _____.\n\nAnswer: _____",
+                        "answer": "#",
+                        "alternatives": [
+                            "#",
+                            "hash",
+                            "pound"
+                        ],
+                        "explanation": "**Why `#` is Correct:**\nUML visibility notation: `+` for Public, `-` for Private, `#` for Protected, and `~` for Package."
+                    }
+                ]
+            }
+        ]
+    },
+    "9": {
+        "title": "Case 09: UML Behavioral & Interaction Diagrams",
+        "episodes": [
+            {
+                "title": "Module 1: Sequence Diagrams: Temporal Interaction",
+                "blocks": [
+                    {
+                        "type": "markdown",
+                        "content": "While structural diagrams capture the static anatomy of classes and components, **Behavioral Diagrams** model how objects collaborate dynamically over time to execute business transactions."
+                    },
+                    {
+                        "type": "objective",
+                        "title": "Module Objective",
+                        "content": "Master Sequence diagrams, distinguish between synchronous and asynchronous calls, and utilize combined interaction fragments (`alt`, `opt`, `loop`)."
+                    },
+                    {
+                        "type": "concept",
+                        "title": "Anatomy of a UML Sequence Diagram",
+                        "content": "- **Lifeline:** A vertical dashed line representing the existence of an object over time. Objects sit at the top (`ClassName` or `instance:ClassName`).\n- **Activation Bar (Focus of Control):** A vertical thin rectangle superimposed on a lifeline indicating when the object is actively performing an operation or waiting for a subordinate call.\n- **Synchronous Message ($\\\\blacktriangleright$):** Caller blocks and waits for a response. Represented as a solid line with a filled solid arrowhead `->>`.\n- **Asynchronous Message ($\\\\triangleright$):** Caller dispatches the message and continues execution immediately without waiting. Represented as a solid line with an open/stick arrowhead `-)`.\n- **Return Message:** Dashed line with open arrowhead `-->` carrying return data back to the caller.\n- **Combined Fragments:**\n  - `alt` : Mutually exclusive conditional choices (IF-THEN-ELSE).\n  - `opt` : Optional block that executes only if a guard condition is True.\n  - `loop` : Iteration over a collection with minimum/maximum loop bounds.\n  - `par` : Concurrent, parallel execution of multiple lifelines."
+                    },
+                    {
+                        "type": "visual",
+                        "title": "Authentication & Checkout Sequence Flow",
+                        "code": "sequenceDiagram\n  autonumber\n  actor User as Customer\n  participant Web as WebFrontend\n  participant Auth as AuthService\n  participant Pay as PaymentGateway\n  \n  User->>Web: Click \"Pay $100\"\n  activate Web\n  Web->>Auth: verifySession(token)\n  activate Auth\n  Auth-->>Web: SessionValid(userId=42)\n  deactivate Auth\n  \n  alt Payment Succeeded\n    Web->>Pay: charge(card, $100)\n    activate Pay\n    Pay-->>Web: 200 OK (Receipt #889)\n    deactivate Pay\n    Web-->>User: Display \"Order Confirmed\"\n  else Card Declined\n    Web-->>User: Display \"Payment Failed: Card Declined\"\n  end\n  deactivate Web"
+                    },
+                    {
+                        "type": "micro_challenge",
+                        "title": "Sequence Diagram Message Semantics",
+                        "question": "What type of interaction message is represented by a solid horizontal line with a filled solid arrowhead (`->>`), requiring the calling object to pause its own execution until a return response is received?",
+                        "options": [
+                            "Asynchronous Message",
+                            "Synchronous Message",
+                            "Self-referential Reflection Call",
+                            "Lost Message"
+                        ],
+                        "answer": 1,
+                        "explanation": "**Why Synchronous Message is Correct:**\nIn UML Sequence diagrams, a solid line with a filled triangular arrowhead represents a **Synchronous Message** (blocking call), where the sender waits for the completion of the invoked operation."
+                    }
+                ]
+            },
+            {
+                "title": "Module 2: Collaboration (Communication) Diagrams",
+                "blocks": [
+                    {
+                        "type": "markdown",
+                        "content": "A **Collaboration Diagram** (renamed **Communication Diagram** in UML 2.0) represents the exact same interaction information as a Sequence Diagram, but emphasizes the **spatial, structural layout** of cooperating objects rather than a timeline axis."
+                    },
+                    {
+                        "type": "concept",
+                        "title": "Sequence Diagrams vs Collaboration Diagrams",
+                        "content": "| Dimension | Sequence Diagram | Collaboration Diagram |\n| :--- | :--- | :--- |\n| **Primary Focus** | Explicit chronological sequence of time | Structural organization of collaborating objects |\n| **Time Dimension** | Vertical axis flows downward | Encoded via sequence numbers (`1:`, `1.1:`, `2:`) |\n| **Object Links** | Lifelines do not show physical links | Explicit links connect communicating objects |\n| **Best Used For** | Detailed timing logic, concurrency, timeouts | High-level architectural object relationships |"
+                    },
+                    {
+                        "type": "concept",
+                        "title": "Hierarchical Numbering in Communication Diagrams",
+                        "content": "Because there is no downward timeline, messages are labeled with decimal sequence numbers indicating nested procedural calls:\n- `1: validateCredentials()` : Top-level call from Controller to AuthService.\n- `1.1: lookupHash(username)` : Subordinate call initiated by AuthService to Database.\n- `1.1.1: executeSQLQuery()` : Further nested invocation inside Database driver.\n- `2: notifyUser()` : Subsequent top-level call after message 1 completes."
+                    },
+                    {
+                        "type": "fill_in_the_blank",
+                        "title": "Communication Diagram Ordering",
+                        "question": "In a UML Collaboration/Communication diagram, message order and nested execution depth are indicated by sequential _____ numbers placed before the message name.\n\nAnswer: _____",
+                        "answer": "Sequence",
+                        "alternatives": [
+                            "Sequence",
+                            "Sequence numbers",
+                            "Decimal"
+                        ],
+                        "explanation": "**Why Sequence is Correct:**\n**Sequence numbers** (e.g., `1:`, `1.1:`, `1.2:`) provide the temporal and nesting hierarchy that replaces the vertical timeline of Sequence diagrams."
+                    }
+                ]
+            },
+            {
+                "title": "Module 3: Activity Diagrams: Workflow & Concurrency",
+                "blocks": [
+                    {
+                        "type": "markdown",
+                        "content": "An **Activity Diagram** models procedural flow of control and data between activities. It is UML's modernized, concurrent evolution of the traditional flowchart."
+                    },
+                    {
+                        "type": "concept",
+                        "title": "Core Elements of an Activity Diagram",
+                        "content": "- **Initial Node:** Solid black filled circle $\\bullet$ representing the workflow starting point.\n- **Activity / Action State:** Rounded rectangle representing a unit of work (e.g., `Charge Credit Card`).\n- **Decision & Merge Diamonds:** Diamond symbol $\\lozenge$.\n  - *Decision:* Single incoming flow, multiple outgoing flows with bracketed boolean guards `[x > 0]`.\n  - *Merge:* Multiple alternative incoming flows joined into a single outgoing flow.\n- **Fork & Join Synchronization Bars:** Thick solid horizontal/vertical black bars.\n  - *Fork:* 1 incoming flow splits into 2 or more concurrent, parallel execution paths.\n  - *Join:* 2 or more parallel paths synchronize; the outgoing flow only executes when **all** incoming paths arrive.\n- **Swimlanes (Partitions):** Vertical or horizontal columns assigning responsibility for actions to specific organizational units or subsystems (e.g., `Customer`, `Billing Engine`, `Warehouse Warehouse`).\n- **Activity Final Node:** A bullseye (solid circle inside an outer circle $\\odot$) marking workflow completion."
+                    },
+                    {
+                        "type": "visual",
+                        "title": "Concurrent Order Fulfillment Activity Diagram",
+                        "code": "graph TD\n  START((\u25cf)) --> AUTH[\"Verify Order Payment\"]\n  AUTH --> FORK[Thick Bar: Fork]\n  FORK --> PACK[\"Warehouse: Pack Physical Goods\"]\n  FORK --> INVOICE[\"Finance: Generate Digital PDF Invoice\"]\n  PACK --> JOIN[Thick Bar: Join]\n  INVOICE --> JOIN\n  JOIN --> SHIP[\"Dispatch Order with Tracking\"]\n  SHIP --> END_NODE(((\u25ce)))"
+                    },
+                    {
+                        "type": "micro_challenge",
+                        "title": "Activity Synchronization Semantics",
+                        "question": "In a UML Activity Diagram, what must occur at a **Join Bar** before execution can proceed to the subsequent action state?",
+                        "options": [
+                            "Any single incoming concurrent path arrives (OR logic).",
+                            "All incoming concurrent execution paths must complete and arrive at the bar (AND synchronization).",
+                            "The system must throw an exception.",
+                            "The user must press the Enter key."
+                        ],
+                        "answer": 1,
+                        "explanation": "**Why All Incoming Paths (AND synchronization) is Correct:**\nA **Join Bar** enforces rendezvous synchronization. It waits for tokens from **every** incoming concurrent thread to arrive before emitting a single unified token downstream."
+                    }
+                ]
+            },
+            {
+                "title": "Module 4: Statechart Diagrams & Interactive Concurrency Audit",
+                "blocks": [
+                    {
+                        "type": "markdown",
+                        "content": "Pioneered by David Harel in 1987, **Statechart Diagrams** model event-driven reactive systems whose behavior depends fundamentally on their current internal state."
+                    },
+                    {
+                        "type": "concept",
+                        "title": "Anatomy of a State Transition",
+                        "content": "A transition connects two states with the formal notation:\n\n$$\\text{Trigger/Event} \\ [\\text{Guard Condition}] \\ / \\ \\text{Action}$$\n\n- **State:** A condition during the life of an object where it satisfies a condition, performs an ongoing activity, or waits for an event. Can contain internal actions: `entry / action`, `do / activity`, `exit / action`.\n- **Event:** An external stimulus that can trigger a state change (e.g., `coin_inserted`, `sensor_alarm`).\n- **Guard:** A boolean expression enclosed in square brackets `[balance >= price]` that must be True for the transition to fire.\n- **Action:** An atomic, non-interruptible computation executed during the transition (e.g., `/ dispense_drink()`).\n- **Composite (Nested) States:** States containing nested substates to manage complexity."
+                    },
+                    {
+                        "type": "diagram_critique",
+                        "title": "Spot the Concurrency Antipattern: Deadlock in State Transition",
+                        "scenario": "Review this Statechart snippet for a secure multi-threaded IoT smart lock:",
+                        "code": "stateDiagram-v2\n  [*] --> Locked\n  Locked --> Authenticating : FingerprintScanned\n  Authenticating --> Unlocked : [PIN_Valid and Network_Connected]\n  Authenticating --> Locked : [Invalid_PIN]\n  Unlocked --> Relocking : Timeout_10s\n  Relocking --> Locked : Door_Closed\n  Relocking --> Relocking : [Door_Ajar] / SoundAlarm()",
+                        "question": "What critical operational hazard exists in the `Authenticating` state if an authorized user enters the correct PIN while the local WiFi connection is temporarily dropped?",
+                        "options": [
+                            "The smart lock explodes.",
+                            "State Deadlock / Indefinite Trap: The state has transitions for `[PIN_Valid and Network_Connected]` and `[Invalid_PIN]`, but NO transition for `[PIN_Valid and NOT Network_Connected]`, leaving the lock trapped in `Authenticating` forever.",
+                            "The lock automatically dispenses cash.",
+                            "The battery instantly drains."
+                        ],
+                        "answer": 1,
+                        "remedy": "**Remediation:**\nA robust statechart must guarantee **state transition exhaustiveness**. The system must specify fallback transitions: e.g., `Authenticating --> OfflineAuth : [PIN_Valid and NOT Network_Connected]` or an authentication timeout transition returning to `Locked`."
+                    },
+                    {
+                        "type": "scenario_decision",
+                        "title": "Diagram Selection Decision",
+                        "scenario": "You are designing a high-frequency algorithmic trading engine. The team needs to rigorously document the exact millisecond lifecycle of an individual stock limit order as it transitions through `PENDING`, `PARTIALLY_FILLED`, `FILLED`, `CANCELLED`, and `REJECTED` in response to market match events.",
+                        "question": "Which UML diagram is the single best choice for capturing this order lifecycle?",
+                        "options": [
+                            "Use Case Diagram",
+                            "Component Diagram",
+                            "Statechart (State Machine) Diagram",
+                            "Deployment Diagram"
+                        ],
+                        "answer": 2,
+                        "rationale": "**Why Statechart Diagram is Optimal:**\nWhen an entity's behavior is dictated by discrete operational states (`PENDING`, `FILLED`, `CANCELLED`) triggered by external events with guards, the **UML Statechart Diagram** is the definitive, mathematically rigorous modeling notation."
+                    }
+                ]
+            }
+        ]
+    },
+    "10": {
+        "title": "Case 10: Software Architecture & DFD-to-Structure-Chart",
+        "episodes": [
+            {
+                "title": "Module 1: Architectural Styles & Structural Blueprints",
+                "blocks": [
+                    {
+                        "type": "markdown",
+                        "content": "Software architecture provides the high-level structural blueprint of a system, defining subsystems, responsibilities, and communication topologies."
+                    },
+                    {
+                        "type": "objective",
+                        "title": "Module Objective",
+                        "content": "Analyze canonical architectural styles (Layered, Pipe-and-Filter, Repository, Client-Server) and understand architectural trade-offs."
+                    },
+                    {
+                        "type": "concept",
+                        "title": "Canonical Architectural Styles",
+                        "content": "1. **Layered (N-Tier) Architecture:** Organized into horizontal layers where each layer provides services to the layer above and consumes services from the layer below. Common in enterprise web applications (Presentation $\\rightarrow$ Application/Domain $\\rightarrow$ Persistence $\\rightarrow$ Database).\n2. **Pipe-and-Filter Architecture:** Processing is divided into independent, decoupled components (**Filters**) that transform streams of data received through unidirectional channels (**Pipes**). No shared state (e.g., UNIX pipelines, image processing, video transcoding).\n3. **Repository (Blackboard) Architecture:** Multiple independent computational agents or subsystems (**Knowledge Sources**) share access to a central, passive data store (**Blackboard/Repository**). Ideal for compilers, AI expert systems, and IDEs.\n4. **Event-Driven (Publish-Subscribe) Architecture:** Components emit asynchronous event notifications to an event broker. Decoupled listeners react to events without direct knowledge of publishers."
+                    },
+                    {
+                        "type": "micro_challenge",
+                        "title": "Architectural Style Identification",
+                        "question": "Which architectural style is characterized by decoupled processing nodes transforming sequential data streams with zero shared state, like the UNIX command: `cat log.txt | grep 'ERROR' | sort | uniq -c`?",
+                        "options": [
+                            "Layered (N-Tier)",
+                            "Pipe-and-Filter",
+                            "Blackboard / Repository",
+                            "Monolithic Mainframe"
+                        ],
+                        "answer": 1,
+                        "explanation": "**Why Pipe-and-Filter is Correct:**\nThe **Pipe-and-Filter** pattern separates discrete transformation tasks into independent filter elements connected by data streams (pipes), maximizing concurrency and component reusability."
+                    }
+                ]
+            },
+            {
+                "title": "Module 2: Transforming DFDs to Structure Charts: Transform Mapping",
+                "blocks": [
+                    {
+                        "type": "markdown",
+                        "content": "A cornerstone of classical Software Engineering is the systematic conversion of an analysis model (Data Flow Diagram) into an architectural design model (Structure Chart)."
+                    },
+                    {
+                        "type": "concept",
+                        "title": "Transform Analysis (Transform Mapping)",
+                        "content": "Applied when the primary data flow involves reading input, transforming it algorithmically, and writing output:\n1. **Identify Flow Boundaries:**\n   - **Afferent (Incoming) Branch:** Processes that read and validate input, converting external data into internal form.\n   - **Transform Center (Central Processing Hub):** The core process(es) that execute the fundamental algorithmic transformation.\n   - **Efferent (Outgoing) Branch:** Processes that take internal results and format/route them to external entities.\n2. **First-Level Factoring:**\n   - Create a Root Executive Control Module.\n   - Subordinate to root: Input Controller, Transform Controller, Output Controller.\n3. **Second-Level Factoring:** Decompose each controller into specific subordinate leaf routines."
+                    },
+                    {
+                        "type": "concept",
+                        "title": "Transaction Analysis (Transaction Mapping)",
+                        "content": "Applied when a single incoming data packet (a transaction) triggers one of many mutually exclusive action paths based on its transaction type code (e.g., banking action: `[Deposit | Withdraw | Transfer | Check Balance]`):\n1. Identify the **Transaction Center** (the process that evaluates transaction type).\n2. Create a Transaction Dispatcher Module in the Structure Chart.\n3. Create an Action Subordinate Module for each discrete action path."
+                    },
+                    {
+                        "type": "micro_challenge",
+                        "title": "DFD Mapping Strategy Selection",
+                        "question": "If a Data Flow Diagram reveals a central process that receives an input token and branches into 12 completely distinct, mutually exclusive operational paths depending on an `action_code` field, which architectural mapping technique must be applied?",
+                        "options": [
+                            "Transform Mapping",
+                            "Transaction Mapping",
+                            "Heuristic Guessing",
+                            "Continuous Integration"
+                        ],
+                        "answer": 1,
+                        "explanation": "**Why Transaction Mapping is Correct:**\n**Transaction Mapping (Transaction Analysis)** is specifically designed for systems where an input transaction's type dictates which one of several alternative action paths is executed."
+                    }
+                ]
+            },
+            {
+                "title": "Module 3: Work Breakdown Structure & Partitioning",
+                "blocks": [
+                    {
+                        "type": "markdown",
+                        "content": "Architects must structure both the software system and the engineering effort required to build it."
+                    },
+                    {
+                        "type": "concept",
+                        "title": "Vertical vs Horizontal Partitioning",
+                        "content": "- **Vertical Partitioning (Factoring):** Distributes control and processing along a top-down hierarchy. Top-level modules perform decision-making and control coordination; bottom-level modules perform raw mathematical and I/O work. This prevents low-level workers from making high-level policy decisions.\n- **Horizontal Partitioning:** Defines separate modular branches for each major system function or capability (e.g., separate branches for `Input Acquisition`, `Computation`, and `Display Output`). Enables parallel development and localized testing."
+                    },
+                    {
+                        "type": "concept",
+                        "title": "Work Breakdown Structure (WBS)",
+                        "content": "A hierarchical, deliverable-oriented decomposition of the project scope into manageable work packages:\n- Level 1: Project Name (e.g., E-Commerce Platform)\n- Level 2: Major Subsystems / Lifecycle Phases (e.g., User Management, Payment Gateway, Inventory)\n- Level 3: Work Packages (e.g., Implement OAuth2, Design Postgres Schema, Build Stripe Webhook)\n- Level 4: Atomic Tasks (assignable to a single engineer with 8-40 hours of effort)."
+                    },
+                    {
+                        "type": "fill_in_the_blank",
+                        "title": "Partitioning Concept",
+                        "question": "Partitioning software such that control and decision-making logic reside at the top of the hierarchy while algorithmic and worker operations reside at the bottom is called _____ partitioning.\n\nAnswer: _____",
+                        "answer": "Vertical",
+                        "alternatives": [
+                            "Vertical",
+                            "Vertical partitioning"
+                        ],
+                        "explanation": "**Why Vertical is Correct:**\n**Vertical partitioning** separates high-level supervisory decision logic from low-level operational execution."
+                    }
+                ]
+            },
+            {
+                "title": "Module 4: Architectural Trade-off Dilemma",
+                "blocks": [
+                    {
+                        "type": "markdown",
+                        "content": "Let us evaluate architectural styles under real-world performance constraints."
+                    },
+                    {
+                        "type": "scenario_decision",
+                        "title": "Architectural Style Selection: High-Throughput Video Pipeline",
+                        "scenario": "Your team is building an automated medical imaging system that takes 4K X-ray video feeds, applies image denoising, extracts edge contours, detects anomalies using an ML model, and overlays warning metadata before saving to DICOM archives.",
+                        "question": "Which architectural pattern is the most structurally and computationally optimal fit for this streaming pipeline?",
+                        "options": [
+                            "Layered N-Tier with database polling at each step.",
+                            "Pipe-and-Filter Architecture, where each filter independently executes one transformation stage on the streaming buffer.",
+                            "Blackboard Architecture where all raw video frames are dumped into a central relational MySQL table.",
+                            "Client-Server where the frontend mobile app does all image processing."
+                        ],
+                        "answer": 1,
+                        "rationale": "**Why Pipe-and-Filter is Optimal:**\nImage and video processing is fundamentally a streaming pipeline of independent sequential transformations (`raw -> denoise -> edge -> detect -> overlay`). **Pipe-and-Filter** allows each filter to run concurrently on separate CPU/GPU cores with zero shared memory contention, delivering maximum throughput."
+                    },
+                    {
+                        "type": "calculation_challenge",
+                        "title": "Structure Chart Metric: Maximum Fan-Out",
+                        "problem": "An architect is reviewing a Structure Chart where the root controller invokes 14 subordinate worker modules directly ($f_{out} = 14$). Software engineering guidelines (Miller's law) recommend keeping fan-out bounded to $7 \\pm 2$.\n\nBy what minimum number of subordinate modules does this design exceed the recommended maximum threshold ($f_{max} = 9$)?",
+                        "formula": "Excess = f_{out} - 9",
+                        "answer": "5",
+                        "alternatives": [
+                            "5",
+                            "5 modules"
+                        ],
+                        "step_by_step": "**Derivation:**\n- Measured fan-out $f_{out} = 14$.\n- Recommended maximum bound = $7 + 2 = 9$.\n- Excess = $14 - 9 = 5$.\n- **Remedy:** Introduce intermediate coordinating controllers (factoring) to group related workers."
+                    }
+                ]
+            }
+        ]
+    },
+    "11": {
+        "title": "Case 11: Testing Fundamentals, Test Plans & Black-Box Techniques",
+        "episodes": [
+            {
+                "title": "Module 1: Testing Fundamentals: Verification vs Validation",
+                "blocks": [
+                    {
+                        "type": "markdown",
+                        "content": "Software testing is the process of executing a program with the deliberate intent of finding errors. Testing cannot prove the absence of bugs\u2014only their presence (Edsger Dijkstra)."
+                    },
+                    {
+                        "type": "objective",
+                        "title": "Module Objective",
+                        "content": "Master the distinction between Verification and Validation, understand the 4 testing levels, and explore the IEEE 829 standard for test documentation."
+                    },
+                    {
+                        "type": "concept",
+                        "title": "Barry Boehm's Axiom: Verification vs Validation",
+                        "content": "- **Verification ('Are we building the product right?'):** Static and structural activities ensuring that software conforms to its preceding specification. Includes code inspections, peer walkthroughs, static analysis, and formal mathematical proofs.\n- **Validation ('Are we building the right product?'):** Dynamic execution activities ensuring that the software fulfills customer requirements and operational intentions in the real world. Includes user acceptance testing, beta testing, and scenario verification.\n\n### Levels of Testing:\n1. **Unit Testing:** Individual functions/classes tested in isolation by developers.\n2. **Integration Testing:** Interfaces and communication between integrated modules tested.\n3. **System Testing:** The fully integrated, end-to-end software and hardware tested against functional and non-functional requirements.\n4. **Acceptance Testing:** Tested by clients/end-users to determine commercial sign-off."
+                    },
+                    {
+                        "type": "micro_challenge",
+                        "title": "Verification vs Validation",
+                        "question": "Conducting a formal code inspection to ensure that a class implementation precisely complies with its architectural design document is an example of:",
+                        "options": [
+                            "Validation",
+                            "Verification",
+                            "Beta Testing",
+                            "Stress Testing"
+                        ],
+                        "answer": 1,
+                        "explanation": "**Why Verification is Correct:**\nEnsuring that an engineering artifact matches its specifications without dynamic execution ('building the product right') is the textbook definition of **Verification**."
+                    }
+                ]
+            },
+            {
+                "title": "Module 2: IEEE 829 Test Plans & Test Case Specifications",
+                "blocks": [
+                    {
+                        "type": "markdown",
+                        "content": "Rigorous testing requires formal documentation. The **IEEE 829 Standard for Software Test Documentation** defines the mandatory structure of professional test plans."
+                    },
+                    {
+                        "type": "concept",
+                        "title": "Key Sections of an IEEE 829 Test Plan",
+                        "content": "1. **Test Plan Identifier:** Unique document tracking reference.\n2. **Introduction & References:** System scope, project charter, and SRS references.\n3. **Test Items:** Software modules, versions, and baselines to be verified.\n4. **Features to be Tested:** Explicit listing of functional and non-functional requirements in scope.\n5. **Features NOT to be Tested:** Explicit exclusions (e.g., third-party legacy APIs, unreleased hardware).\n6. **Approach (Strategy):** Tools, automation frameworks, test levels, and coverage criteria.\n7. **Item Pass/Fail Criteria:** Exact metrics required to declare a test pass.\n8. **Suspension & Resumption Criteria:** Conditions halting testing (e.g., fatal blocker bug blocking 50% of test suites).\n9. **Test Deliverables:** Test case specs, test incident logs, summary reports."
+                    },
+                    {
+                        "type": "concept",
+                        "title": "Anatomy of an IEEE 829 Test Case Specification",
+                        "content": "A test case must be repeatable by any engineer without ambiguity:\n- **Test Case ID:** e.g., `TC-AUTH-04`\n- **Description / Objective:** Verify user lockout after 3 consecutive invalid password attempts.\n- **Pre-conditions:** Test database initialized with active user `john@example.com`.\n- **Input Data:** Password entries: `'wrong1'`, `'wrong2'`, `'wrong3'`.\n- **Expected Result:** HTTP 423 Locked; database field `is_locked = TRUE`; security alert logged.\n- **Actual Result:** Recorded during execution.\n- **Status:** PASS / FAIL / BLOCKED."
+                    },
+                    {
+                        "type": "fill_in_the_blank",
+                        "title": "Test Documentation Standard",
+                        "question": "The global IEEE standard defining the format for Software Test Documentation (Test Plans, Test Case Specifications, Test Incident Reports) is IEEE _____.\n\nAnswer: _____",
+                        "answer": "829",
+                        "alternatives": [
+                            "829",
+                            "IEEE 829",
+                            "IEEE-829"
+                        ],
+                        "explanation": "**Why 829 is Correct:**\n**IEEE 829** (Standard for Software and System Test Documentation) is the benchmark standard for test plans and test case specifications."
+                    }
+                ]
+            },
+            {
+                "title": "Module 3: Black-Box Testing: Equivalence Partitioning & BVA",
+                "blocks": [
+                    {
+                        "type": "markdown",
+                        "content": "**Black-Box (Functional) Testing** derives test cases purely from requirements specifications without examining internal source code logic."
+                    },
+                    {
+                        "type": "concept",
+                        "title": "Equivalence Class Partitioning (ECP)",
+                        "content": "- Divides the input domain of a program into equivalence classes such that testing any single value from a class is assumed to yield the same result as testing every other value in that class.\n- **Valid Equivalence Classes:** Valid input ranges accepted by the specification.\n- **Invalid Equivalence Classes:** Erroneous, unexpected, or out-of-bounds input ranges that must trigger error handling."
+                    },
+                    {
+                        "type": "concept",
+                        "title": "Boundary Value Analysis (BVA)",
+                        "content": "- Empirical studies prove that developers make the vast majority of coding mistakes at boundary edges (off-by-one errors: `<` instead of `<=`, index overflow).\n- **2-Value BVA:** Tests the exact boundary value and its immediate interior/exterior neighbor.\n- **3-Value BVA (Robustness):** For a range $[a, b]$, test values include: $a - 1$ (invalid low), $a$ (minimum), $a + 1$ (just above min), nominal typical value, $b - 1$ (just below max), $b$ (maximum), and $b + 1$ (invalid high)."
+                    },
+                    {
+                        "type": "micro_challenge",
+                        "title": "Boundary Value Analysis",
+                        "question": "A banking software field accepts daily wire transfer amounts in integer dollars from $100 to $10,000 inclusive. Under standard 2-value Boundary Value Analysis, which set of input values must be tested?",
+                        "options": [
+                            "{0, 5000, 20000}",
+                            "{99, 100, 10000, 10001}",
+                            "{100, 500, 1000, 5000}",
+                            "Any 4 random numbers between 100 and 10000"
+                        ],
+                        "answer": 1,
+                        "explanation": "**Why {99, 100, 10000, 10001} is Correct:**\nFor boundary range $[100, 10000]$: Boundaries are 100 and 10000. Testing the boundaries and their immediate adjacent points yields: $100 - 1 = 99$, $100$, $10000$, and $10000 + 1 = 10001$."
+                    }
+                ]
+            },
+            {
+                "title": "Module 4: Boundary Value Calculation Challenge",
+                "blocks": [
+                    {
+                        "type": "markdown",
+                        "content": "Let us compute test cases for an enterprise insurance qualification engine."
+                    },
+                    {
+                        "type": "calculation_challenge",
+                        "title": "Equivalence Partition Count Calculation",
+                        "problem": "An airline reservation booking system accepts traveler age as an integer with the following business rules:\n- Age 0 to 1: Infant (Free ticket)\n- Age 2 to 11: Child (50% discount)\n- Age 12 to 64: Adult (Standard fare)\n- Age 65 to 120: Senior (20% discount)\n- Any age < 0 or > 120 is rejected as invalid.\n\nHow many total Equivalence Classes (both valid and invalid combined) exist for this age input field?",
+                        "formula": "Total\\ Classes = Valid\\ Partitions + Invalid\\ Partitions",
+                        "answer": "6",
+                        "alternatives": [
+                            "6",
+                            "6 classes",
+                            "6 partitions"
+                        ],
+                        "step_by_step": "**Derivation:**\n- **Valid Equivalence Classes (4):**\n  1. $[0, 1]$ (Infant)\n  2. $[2, 11]$ (Child)\n  3. $[12, 64]$ (Adult)\n  4. $[65, 120]$ (Senior)\n- **Invalid Equivalence Classes (2):**\n  5. $Age < 0$ (Negative ages)\n  6. $Age > 120$ (Excessive ages)\n- Total Partitions = $4 + 2 = 6$ classes."
+                    },
+                    {
+                        "type": "scenario_decision",
+                        "title": "Test Strategy Dilemma: Missing Boundary Defect",
+                        "scenario": "A financial tax reporting application experienced an embarrassing production crash on leap year (Feb 29). The developer argues: 'We wrote 20 unit tests with random dates throughout the year, and all passed.'",
+                        "question": "What fundamental software testing lesson does this production failure demonstrate?",
+                        "options": [
+                            "Testing with random inputs is superior to structured testing.",
+                            "Random testing misses edge cases; Boundary Value Analysis and Equivalence Partitioning must explicitly target calendar boundary transitions (Feb 28, Feb 29, Dec 31, Jan 1, leap year divisibility rules).",
+                            "Developers should never test date functions.",
+                            "Leap years should be abolished from software."
+                        ],
+                        "answer": 1,
+                        "rationale": "**Why Structured Boundary Testing is Indispensable:**\nRandom (monkey) testing almost never exercises precise mathematical boundary conditions. Systematic **Boundary Value Analysis** explicitly forces testing at calendar threshold transitions where leap year logic errors congregate."
+                    }
+                ]
+            }
+        ]
+    }
+}

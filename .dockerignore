@@ -1,0 +1,16 @@
+.git
+.gitignore
+.env
+data/
+tests/
+__pycache__/
+*.py[cod]
+.DS_Store
+platform_progress.json
+web/
+streamlit/
+Library/
+Story_Driven_DBMS_Learning_Report.pdf
+README.md
+nginx.conf.example
+docker-compose.yml
