@@ -1,0 +1,641 @@
+{
+  "9": {
+    "episodes": [
+      [
+        {
+          "text": "The Veridian Museum of Cultural Heritage maintains four paper-ledger systems: a Visitor Registry, Artifact Catalog, Loan Record, and Curator Directory. Each is managed by a different department. Last week, Curator Elin updated an artifact's origin date in the Catalog \u2014 but the Loan Record still shows the old date. A visiting researcher is now questioning the integrity of the entire archive.",
+          "title": "The Museum of Chaos",
+          "type": "story"
+        },
+        {
+          "text": "Updating an artifact in one place leaves conflicting dates elsewhere. How do we build a system that manages this reliably without rewriting every application when storage changes?",
+          "type": "problem"
+        },
+        {
+          "analogy": "Imagine a mail system where you have to know the exact physical address of someone's bedroom to send them a letter. If they move their bed, your mail gets lost. Independence is like a mailing address \u2014 you send it to the address, and the post office figures out the rest.",
+          "explanation": "Data dependency means programs are tightly coupled to the physical details of data storage. If a file format changes, the programs break.",
+          "technical_explanation": "A DBMS provides physical data independence, allowing the physical storage structure to change without requiring changes to application programs.",
+          "title": "Data Dependency vs Independence",
+          "type": "concept"
+        },
+        {
+          "type": "query_completion",
+          "title": "Abstracting Storage",
+          "context": "We need to create a view so the app is independent of the physical table structure.",
+          "partial_query": "CREATE VIEW ArtifactView AS SELECT * FROM ___",
+          "options": [
+            "PhysicalDiskTable_v2",
+            "HardDrive_Sector4"
+          ],
+          "answer": "PhysicalDiskTable_v2",
+          "wrong_explanations": {
+            "HardDrive_Sector4": {
+              "why_wrong": "Views abstract away the physical disk sectors.",
+              "confusing_with": "You might be confusing the internal schema with raw hardware.",
+              "remember": "The internal schema uses tables, not sectors.",
+              "retry": "Try again."
+            }
+          }
+        },
+        {
+          "answer": "Data dependency",
+          "explanation": "Data dependency means applications break if the file structure changes.",
+          "options": [
+            "Data redundancy",
+            "Data dependency",
+            "Schema drift",
+            "Referential integrity violation"
+          ],
+          "question": "What problem occurs when application programs are tightly coupled to the physical structure of data files?",
+          "type": "micro_challenge",
+          "wrong_explanations": {
+            "Data redundancy": {
+              "why_wrong": "Incorrect. Data redundancy means storing the same data in multiple places.",
+              "confusing_with": "You might be confusing Data redundancy with the correct concept.",
+              "remember": "Review the core definitions.",
+              "retry": "Try again."
+            },
+            "Referential integrity violation": {
+              "why_wrong": "Incorrect. This occurs when foreign keys point to non-existent primary keys.",
+              "confusing_with": "You might be confusing Referential integrity violation with the correct concept.",
+              "remember": "Review the core definitions.",
+              "retry": "Try again."
+            },
+            "Schema drift": {
+              "why_wrong": "Incorrect. Schema drift refers to undocumented, ad-hoc changes to database schemas over time.",
+              "confusing_with": "You might be confusing Schema drift with the correct concept.",
+              "remember": "Review the core definitions.",
+              "retry": "Try again."
+            }
+          }
+        }
+      ],
+      [
+        {
+          "text": "To solve the museum's problems, the architects decide to design a system with different layers of perspective. A curator sees only forms. The database logic sees the relations. The hard drive only sees bytes.",
+          "title": "The Three Perspectives",
+          "type": "story"
+        },
+        {
+          "analogy": "Think of a restaurant. The Menu (External) is what you see. The Recipes (Conceptual) is what the chef knows. The Pantry Organization (Internal) is how the ingredients are physically stored.",
+          "explanation": "The ANSI/SPARC architecture defines three distinct levels: External (user views), Conceptual (logical structure), and Internal (physical storage).",
+          "technical_explanation": "This abstraction provides both logical and physical data independence, insulating users from underlying changes.",
+          "title": "The Three-Schema Architecture",
+          "type": "concept"
+        },
+        {
+          "data": "  [ External Schema 1 ]   [ External Schema 2 ]\n           \\                 /\n            [ Conceptual Schema ]\n                     |\n             [ Internal Schema ]",
+          "type": "visual",
+          "visual_type": "text"
+        },
+        {
+          "type": "query_correction",
+          "title": "Fixing the View",
+          "context": "The external view shouldn't expose the raw internal IDs.",
+          "broken_query": "SELECT internal_id FROM CuratorView;",
+          "options": [
+            "change internal_id to artifact_name",
+            "change SELECT to UPDATE"
+          ],
+          "answer": "change internal_id to artifact_name",
+          "wrong_explanations": {
+            "change SELECT to UPDATE": {
+              "why_wrong": "Updating doesn't fix the schema exposure.",
+              "confusing_with": "You might be confusing DML with DDL/Schema issues.",
+              "remember": "External views should only expose relevant external data.",
+              "retry": "Try again."
+            }
+          }
+        },
+        {
+          "answer": "External schema",
+          "explanation": "The external schema provides tailored views for different users, hiding the rest of the database.",
+          "options": [
+            "Internal schema",
+            "Conceptual schema",
+            "External schema",
+            "Storage schema"
+          ],
+          "question": "Which schema level defines user-specific views \u2014 what individual users or applications can see?",
+          "type": "micro_challenge",
+          "wrong_explanations": {
+            "Conceptual schema": {
+              "why_wrong": "Incorrect. The conceptual schema defines the overall logical structure of the entire database, not personalized views.",
+              "confusing_with": "You might be confusing Conceptual schema with the correct concept.",
+              "remember": "Review the core definitions.",
+              "retry": "Try again."
+            },
+            "Internal schema": {
+              "why_wrong": "Incorrect. The internal schema describes the physical storage structures and access paths.",
+              "confusing_with": "You might be confusing Internal schema with the correct concept.",
+              "remember": "Review the core definitions.",
+              "retry": "Try again."
+            },
+            "Storage schema": {
+              "why_wrong": "Incorrect. The storage schema is synonymous with the internal schema.",
+              "confusing_with": "You might be confusing Storage schema with the correct concept.",
+              "remember": "Review the core definitions.",
+              "retry": "Try again."
+            }
+          }
+        }
+      ],
+      [
+        {
+          "text": "By applying the conceptual and internal schemas, the museum no longer relies on fragmented files. The curator uses an external view to interact with the database safely.",
+          "title": "Connecting the Levels",
+          "type": "story"
+        },
+        {
+          "question": "If we change the database from a spinning hard drive to a solid-state drive (changing the Internal Schema), do we need to update the Curator's External view?",
+          "type": "reflection"
+        },
+        {
+          "answer": "Conceptual schema",
+          "explanation": "The conceptual schema is the complete logical blueprint, independent of storage or user views.",
+          "options": [
+            "External schema",
+            "Conceptual schema",
+            "Internal schema",
+            "Physical schema"
+          ],
+          "question": "Which schema level defines the overall logical structure \u2014 all entities, attributes, and relationships?",
+          "type": "micro_challenge",
+          "wrong_explanations": {
+            "External schema": {
+              "why_wrong": "Incorrect. The external schema provides targeted views for specific users or applications.",
+              "confusing_with": "You might be confusing External schema with the correct concept.",
+              "remember": "Review the core definitions.",
+              "retry": "Try again."
+            },
+            "Internal schema": {
+              "why_wrong": "Incorrect. The internal schema details the physical layout on disk.",
+              "confusing_with": "You might be confusing Internal schema with the correct concept.",
+              "remember": "Review the core definitions.",
+              "retry": "Try again."
+            },
+            "Physical schema": {
+              "why_wrong": "Incorrect. The physical schema is another term for internal schema.",
+              "confusing_with": "You might be confusing Physical schema with the correct concept.",
+              "remember": "Review the core definitions.",
+              "retry": "Try again."
+            }
+          }
+        }
+      ]
+    ],
+    "format": "episodic"
+  },
+  "10": {
+    "episodes": [
+      [
+        {
+          "text": "City Architect Rael submitted blueprints for a new district. The planning committee's algorithm flagged 14 buildings as 'impossible' \u2014 they violate the city's own structural laws. The laws are stored as entity-relationship constraints.",
+          "title": "The Impossible Blueprints",
+          "type": "story"
+        },
+        {
+          "text": "We need a standard way to model the city's rules and query the data to find out exactly which buildings are illegal.",
+          "type": "problem"
+        },
+        {
+          "analogy": "A 'Noun' is an Entity (Building, Architect). A 'Verb' is a Relationship (Designs, Contains).",
+          "explanation": "An entity is a real-world object with independent existence. A relationship describes how entities interact.",
+          "technical_explanation": "In an ER model, entities have attributes (properties) and participate in relationships, governed by cardinality constraints (like 1:1, 1:N, M:N).",
+          "title": "Entities and Relationships",
+          "type": "concept"
+        },
+        {
+          "answer": "A real-world object or concept that has an existence independent of other objects",
+          "explanation": "Entities are the foundational building blocks, representing distinguishable objects.",
+          "options": [
+            "A relationship between two tables",
+            "A real-world object or concept that has an existence independent of other objects",
+            "A column in a database table",
+            "A constraint on data values"
+          ],
+          "question": "In an Entity-Relationship (ER) diagram, what is an entity?",
+          "type": "micro_challenge",
+          "wrong_explanations": {
+            "A column in a database table": {
+              "why_wrong": "Incorrect. A column corresponds to an attribute, which is a property of an entity.",
+              "confusing_with": "You might be confusing A column in a database table with the correct concept.",
+              "remember": "Review the core definitions.",
+              "retry": "Try again."
+            },
+            "A constraint on data values": {
+              "why_wrong": "Incorrect. Constraints enforce data integrity rules.",
+              "confusing_with": "You might be confusing A constraint on data values with the correct concept.",
+              "remember": "Review the core definitions.",
+              "retry": "Try again."
+            },
+            "A relationship between two tables": {
+              "why_wrong": "Incorrect. A relationship describes how distinct entities interact with each other.",
+              "confusing_with": "You might be confusing A relationship between two tables with the correct concept.",
+              "remember": "Review the core definitions.",
+              "retry": "Try again."
+            }
+          }
+        }
+      ],
+      [
+        {
+          "text": "The city law states: each building is designed by exactly one architect, but an architect can design many buildings. Also, buildings can be generic, or specifically Residential vs Commercial.",
+          "title": "Rules of Engagement",
+          "type": "story"
+        },
+        {
+          "analogy": "Generalization is like saying 'Vehicle'. Specialization is saying 'Car' or 'Truck' \u2014 both are vehicles, but a Truck has a payload capacity.",
+          "explanation": "Cardinality defines the numerical limits of relationships. Generalization groups shared attributes into a parent entity, while specialization creates child entities for unique attributes.",
+          "technical_explanation": "Cardinality constraints (like 1:N) and generalization hierarchies ensure the conceptual model accurately reflects real-world rules.",
+          "title": "Cardinality and Generalization",
+          "type": "concept"
+        },
+        {
+          "data": "   [ Architect ] -- (1) -- < Designs > -- (N) -- [ Building ]\n                                                    /    \\\n                                           [Residential] [Commercial]",
+          "type": "visual",
+          "visual_type": "text"
+        },
+        {
+          "answer": "Cardinality",
+          "explanation": "Cardinality specifies the 'how many' aspect of a relationship.",
+          "options": [
+            "Specialization",
+            "Cardinality",
+            "Participation",
+            "Aggregation"
+          ],
+          "question": "What term describes the numerical relationship between entity instances \u2014 one architect to many buildings?",
+          "type": "micro_challenge",
+          "wrong_explanations": {
+            "Aggregation": {
+              "why_wrong": "Incorrect. Aggregation treats a relationship between entities as a single abstract entity.",
+              "confusing_with": "You might be confusing Aggregation with the correct concept.",
+              "remember": "Review the core definitions.",
+              "retry": "Try again."
+            },
+            "Participation": {
+              "why_wrong": "Incorrect. Participation determines whether an entity's existence depends entirely on its relationship to another entity.",
+              "confusing_with": "You might be confusing Participation with the correct concept.",
+              "remember": "Review the core definitions.",
+              "retry": "Try again."
+            },
+            "Specialization": {
+              "why_wrong": "Incorrect. Specialization is creating subclasses of entities.",
+              "confusing_with": "You might be confusing Specialization with the correct concept.",
+              "remember": "Review the core definitions.",
+              "retry": "Try again."
+            }
+          }
+        }
+      ],
+      [
+        {
+          "text": "Now that we have the model, we need to mathematically isolate the illegal buildings. We use Relational Algebra, a set of theoretical operations that underpin SQL.",
+          "title": "Filtering the Grid",
+          "type": "story"
+        },
+        {
+          "analogy": "Selection is choosing specific rows from a spreadsheet based on a filter. Projection is hiding certain columns you don't care about.",
+          "explanation": "Selection (\u03c3) filters rows based on a condition. Projection (\u03c0) filters columns, keeping only what is requested.",
+          "technical_explanation": "Selection produces a horizontal slice of a relation; Projection produces a vertical slice.",
+          "title": "Relational Algebra: Selection and Projection",
+          "type": "concept"
+        },
+        {
+          "type": "output_prediction",
+          "title": "Predicting the Filter",
+          "context": "We want to see the result of projecting the height after selecting the North district.",
+          "query": "SELECT height FROM Building WHERE district='North';",
+          "options": [
+            "Just a list of heights",
+            "Heights and districts",
+            "Error"
+          ],
+          "answer": "Just a list of heights",
+          "wrong_explanations": {
+            "Heights and districts": {
+              "why_wrong": "The SELECT clause (projection) only specifies height.",
+              "confusing_with": "You may be confusing what is selected vs what is filtered.",
+              "remember": "SELECT is projection (columns), WHERE is selection (rows).",
+              "retry": "Try again."
+            },
+            "Error": {
+              "why_wrong": "The query is valid SQL.",
+              "confusing_with": "You might think relational algebra doesn't translate directly to SQL.",
+              "remember": "SQL perfectly maps to Relational Algebra.",
+              "retry": "Try again."
+            }
+          }
+        },
+        {
+          "answer": "Selection (\u03c3)",
+          "context": "You need to find the heights of all buildings in the 'North' district.",
+          "options": [
+            "Projection (\u03c0)",
+            "Selection (\u03c3)",
+            "Join (\u22c8)",
+            "Union (\u222a)"
+          ],
+          "query": "\u03c0_{height}(\u03c3_{district='North'}(Building))",
+          "question": "Which operation filters rows based on a condition?",
+          "steps": [
+            "1. Apply Selection (\u03c3) where district='North'.",
+            "2. Apply Projection (\u03c0) on the height column."
+          ],
+          "title": "Finding North District Buildings",
+          "type": "guided_practice",
+          "wrong_explanations": {
+            "Join (\u22c8)": {
+              "why_wrong": "Incorrect. Join combines rows from multiple tables based on related columns.",
+              "confusing_with": "You might be confusing Join (\u22c8) with the correct concept.",
+              "remember": "Review the core definitions.",
+              "retry": "Try again."
+            },
+            "Projection (\u03c0)": {
+              "why_wrong": "Incorrect. Projection filters columns (attributes) rather than rows.",
+              "confusing_with": "You might be confusing Projection (\u03c0) with the correct concept.",
+              "remember": "Review the core definitions.",
+              "retry": "Try again."
+            },
+            "Union (\u222a)": {
+              "why_wrong": "Incorrect. Union combines the result sets of two queries into a single result set.",
+              "confusing_with": "You might be confusing Union (\u222a) with the correct concept.",
+              "remember": "Review the core definitions.",
+              "retry": "Try again."
+            }
+          }
+        }
+      ],
+      [
+        {
+          "text": "To find out WHICH architects designed the illegal buildings, we must combine the Building and Architect data.",
+          "title": "Combining Knowledge",
+          "type": "story"
+        },
+        {
+          "analogy": "Like merging two puzzles that share the exact same edge pieces.",
+          "explanation": "A Natural Join combines two relations based on matching values in their shared attributes.",
+          "technical_explanation": "Unlike a Cartesian product, a Natural Join only keeps tuples where the shared attributes have identical values, eliminating duplicates of the shared column.",
+          "title": "Natural Join (\u22c8)",
+          "type": "concept"
+        },
+        {
+          "answer": "Natural join",
+          "explanation": "A natural join connects related data seamlessly on common keys.",
+          "options": [
+            "Union",
+            "Difference",
+            "Natural join",
+            "Cartesian product"
+          ],
+          "question": "Which relational algebra operation combines tuples from two relations that share matching attributes?",
+          "type": "micro_challenge",
+          "wrong_explanations": {
+            "Cartesian product": {
+              "why_wrong": "Incorrect. Cartesian product indiscriminately pairs all tuples from two relations, regardless of matching attributes.",
+              "confusing_with": "You might be confusing Cartesian product with the correct concept.",
+              "remember": "Review the core definitions.",
+              "retry": "Try again."
+            },
+            "Difference": {
+              "why_wrong": "Incorrect. Difference subtracts one set of tuples from another.",
+              "confusing_with": "You might be confusing Difference with the correct concept.",
+              "remember": "Review the core definitions.",
+              "retry": "Try again."
+            },
+            "Union": {
+              "why_wrong": "Incorrect. Union simply appends rows from union-compatible relations without checking for matching attributes.",
+              "confusing_with": "You might be confusing Union with the correct concept.",
+              "remember": "Review the core definitions.",
+              "retry": "Try again."
+            }
+          }
+        }
+      ]
+    ],
+    "format": "episodic"
+  },
+  "11": {
+    "episodes": [
+      [
+        {
+          "text": "The Meridian Legal Archive holds 11,000 digitised contracts. A billion-dollar case depends on a clause from Contract 4471 \u2014 but the archive contains three conflicting versions stored in differently structured tables. The contradiction is a schema design problem.",
+          "title": "The Billion-Dollar Comma",
+          "type": "story"
+        },
+        {
+          "text": "How do we design our tables mathematically so that redundancy and contradictions (update anomalies) are impossible?",
+          "type": "problem"
+        },
+        {
+          "analogy": "A spreadsheet cell should contain 'Apple', not 'Apple, Banana, Orange'. If you need multiple items, use multiple rows.",
+          "explanation": "1NF requires atomic values. No lists, no sets, no repeating groups in a single cell.",
+          "technical_explanation": "Non-atomic values make querying inefficient and complex, requiring string parsing rather than direct indexing.",
+          "title": "First Normal Form (1NF)",
+          "type": "concept"
+        },
+        {
+          "data": "BAD (Not 1NF): | ID | Parties                   |\n               |  1 | Aster Corp, Borin Ltd     |\n\nGOOD (1NF):    | ID | Party      |\n               |  1 | Aster Corp |\n               |  1 | Borin Ltd  |",
+          "type": "visual",
+          "visual_type": "text"
+        },
+        {
+          "answer": "1NF",
+          "explanation": "1NF enforces atomicity for all data.",
+          "options": [
+            "2NF",
+            "3NF",
+            "1NF",
+            "BCNF"
+          ],
+          "question": "Which normal form is violated when a column contains multiple values in a single cell?",
+          "type": "micro_challenge",
+          "wrong_explanations": {
+            "2NF": {
+              "why_wrong": "Incorrect. 2NF resolves partial dependencies on composite keys, assuming 1NF is met.",
+              "confusing_with": "You might be confusing 2NF with the correct concept.",
+              "remember": "Review the core definitions.",
+              "retry": "Try again."
+            },
+            "3NF": {
+              "why_wrong": "Incorrect. 3NF removes transitive dependencies.",
+              "confusing_with": "You might be confusing 3NF with the correct concept.",
+              "remember": "Review the core definitions.",
+              "retry": "Try again."
+            },
+            "BCNF": {
+              "why_wrong": "Incorrect. BCNF ensures every determinant is a candidate key.",
+              "confusing_with": "You might be confusing BCNF with the correct concept.",
+              "remember": "Review the core definitions.",
+              "retry": "Try again."
+            }
+          }
+        }
+      ],
+      [
+        {
+          "text": "After fixing 1NF, our primary key is composite: (contract_id, party_id). But we notice the 'contract_title' column repeats the exact same title for every party in a contract.",
+          "title": "Splitting the Keys",
+          "type": "story"
+        },
+        {
+          "analogy": "If you share an apartment, the rent depends on the apartment (the whole key), not just your name (part of the key).",
+          "explanation": "2NF eliminates partial dependencies. Every non-key attribute must depend on the whole primary key.",
+          "technical_explanation": "If an attribute only depends on part of a composite key, it must be moved to its own table where that part is the sole primary key.",
+          "title": "Second Normal Form (2NF)",
+          "type": "concept"
+        },
+        {
+          "answer": "2NF",
+          "explanation": "2NF prevents repeating information that relies on only a fraction of the primary identifier.",
+          "options": [
+            "1NF",
+            "2NF",
+            "3NF",
+            "4NF"
+          ],
+          "question": "Which normal form requires every non-key attribute to depend on the ENTIRE primary key?",
+          "type": "micro_challenge",
+          "wrong_explanations": {
+            "1NF": {
+              "why_wrong": "Incorrect. 1NF only requires atomic values in each cell.",
+              "confusing_with": "You might be confusing 1NF with the correct concept.",
+              "remember": "Review the core definitions.",
+              "retry": "Try again."
+            },
+            "3NF": {
+              "why_wrong": "Incorrect. 3NF deals with eliminating transitive dependencies (where a non-key attribute depends on another non-key attribute).",
+              "confusing_with": "You might be confusing 3NF with the correct concept.",
+              "remember": "Review the core definitions.",
+              "retry": "Try again."
+            },
+            "4NF": {
+              "why_wrong": "Incorrect. 4NF eliminates multi-valued dependencies.",
+              "confusing_with": "You might be confusing 4NF with the correct concept.",
+              "remember": "Review the core definitions.",
+              "retry": "Try again."
+            }
+          }
+        }
+      ],
+      [
+        {
+          "text": "The table now has: contract_id, contract_title, law_firm_id, law_firm_address. We notice that if a law firm changes its address, we have to update hundreds of contracts.",
+          "title": "The Transitive Chain",
+          "type": "story"
+        },
+        {
+          "analogy": "You report to your Manager, who reports to the CEO. You don't put the CEO's name on your personal badge; you just put your Manager's name.",
+          "explanation": "3NF eliminates transitive dependencies. Non-key columns cannot depend on other non-key columns. BCNF takes this further: every determinant must be a candidate key.",
+          "technical_explanation": "If A determines B, and B determines C, A determines C transitively. B and C must form their own separate relation.",
+          "title": "Third Normal Form (3NF) & BCNF",
+          "type": "concept"
+        },
+        {
+          "data": "Dependency: contract_id -> law_firm_id -> law_firm_address\n\nSplit into:\n[ Contracts: contract_id, law_firm_id ]\n[ LawFirms: law_firm_id, law_firm_address ]",
+          "type": "visual",
+          "visual_type": "text"
+        },
+        {
+          "answer": "Decomposing the relation so the determinant becomes a key in its own table",
+          "context": "You find a violation where clause_author -> law_firm_id, but clause_author is not a key (BCNF violation).",
+          "options": [
+            "Adding a composite primary key",
+            "Decomposing the relation so the determinant becomes a key in its own table",
+            "Adding a CHECK constraint"
+          ],
+          "query": "CREATE TABLE Authors (clause_author PRIMARY KEY, law_firm_id);",
+          "question": "What does fixing a BCNF violation require?",
+          "steps": [
+            "1. Identify the determinant (clause_author).",
+            "2. Extract it and its dependents into a new table.",
+            "3. Make clause_author the primary key of the new table."
+          ],
+          "title": "Applying Decomposition",
+          "type": "guided_practice",
+          "wrong_explanations": {
+            "Adding a CHECK constraint": {
+              "why_wrong": "Incorrect. CHECK constraints validate data values, but don't resolve improper relational dependencies.",
+              "confusing_with": "You might be confusing Adding a CHECK constraint with the correct concept.",
+              "remember": "Review the core definitions.",
+              "retry": "Try again."
+            },
+            "Adding a composite primary key": {
+              "why_wrong": "Incorrect. A BCNF violation often involves a part of a composite key depending on a non-key attribute; adding keys won't fix it.",
+              "confusing_with": "You might be confusing Adding a composite primary key with the correct concept.",
+              "remember": "Review the core definitions.",
+              "retry": "Try again."
+            }
+          }
+        }
+      ],
+      [
+        {
+          "text": "Even perfectly sound schemas might have hidden redundancies due to independent multi-valued facts.",
+          "title": "Advanced Redundancy",
+          "type": "story"
+        },
+        {
+          "analogy": "If you speak 3 languages and have 2 hobbies, storing them in one table creates 6 combinations. They should be completely separate lists.",
+          "explanation": "4NF eliminates multi-valued dependencies (independent 1:N facts in the same table). 5NF eliminates join dependencies where decomposing into two tables loses information.",
+          "technical_explanation": "These higher normal forms resolve edge cases that cause duplication even when functional dependencies are properly mapped.",
+          "title": "4NF and 5NF",
+          "type": "concept"
+        },
+        {
+          "type": "query_completion",
+          "title": "Splitting Multi-valued Facts",
+          "context": "We need to split languages and hobbies into separate tables to satisfy 4NF.",
+          "partial_query": "CREATE TABLE Person_Language (person_id INT, language VARCHAR); CREATE TABLE Person_Hobby (person_id INT, ___);",
+          "options": [
+            "hobby VARCHAR",
+            "language VARCHAR"
+          ],
+          "answer": "hobby VARCHAR",
+          "wrong_explanations": {
+            "language VARCHAR": {
+              "why_wrong": "This would just recreate the language table.",
+              "confusing_with": "You may have forgotten we are splitting two independent multi-valued facts.",
+              "remember": "Each independent multi-valued fact gets its own table with the primary key.",
+              "retry": "Try again."
+            }
+          }
+        },
+        {
+          "answer": "4NF",
+          "explanation": "4NF separates distinct multi-valued properties into independent tables.",
+          "options": [
+            "3NF",
+            "BCNF",
+            "4NF",
+            "5NF"
+          ],
+          "question": "Which normal form eliminates multi-valued dependencies \u2014 where one attribute independently determines a set of values for another?",
+          "type": "micro_challenge",
+          "wrong_explanations": {
+            "3NF": {
+              "why_wrong": "Incorrect. 3NF handles transitive dependencies, not multi-valued ones.",
+              "confusing_with": "You might be confusing 3NF with the correct concept.",
+              "remember": "Review the core definitions.",
+              "retry": "Try again."
+            },
+            "5NF": {
+              "why_wrong": "Incorrect. 5NF deals with join dependencies and non-loss decompositions.",
+              "confusing_with": "You might be confusing 5NF with the correct concept.",
+              "remember": "Review the core definitions.",
+              "retry": "Try again."
+            },
+            "BCNF": {
+              "why_wrong": "Incorrect. BCNF is a stricter version of 3NF addressing all determinants, but still doesn't address multi-valued dependencies.",
+              "confusing_with": "You might be confusing BCNF with the correct concept.",
+              "remember": "Review the core definitions.",
+              "retry": "Try again."
+            }
+          }
+        }
+      ]
+    ],
+    "format": "episodic"
+  }
+}

@@ -1,0 +1,627 @@
+{
+  "5": {
+    "episodes": [
+      [
+        {
+          "text": "A wildfire is spreading across three districts. Fire Command, Police, and Transit are each updating overlapping evacuation route records in the same database. Residents in Zone 7 are receiving three different evacuation routes simultaneously. Two agencies have already committed. One is mid-transaction. Records contradict each other in real time.",
+          "title": "The Chaos of Uncoordinated Updates",
+          "type": "story"
+        },
+        {
+          "text": "How do we prevent multiple agencies from reading half-written data or overwriting each other's updates without locking the entire database?",
+          "type": "problem"
+        },
+        {
+          "analogy": "It's like reading a rough draft of an evacuation plan that hasn't been approved yet. If the plan is scrapped, you're acting on false information.",
+          "explanation": "A dirty read occurs when a transaction reads data modified by another transaction that has not yet committed.",
+          "technical_explanation": "Transaction A updates a row but doesn't commit. Transaction B reads that row. Transaction A rolls back. Transaction B now has data that never officially existed.",
+          "title": "The Dirty Read",
+          "type": "concept"
+        },
+        {
+          "data": "TIME | FIRE COMMAND (T1)       | TRANSIT (T2)\n-----------------------------------------------------\n 1   | BEGIN                   | \n 2   | UPDATE Route='Hwy 12'   | \n 3   |                         | BEGIN\n 4   |                         | SELECT Route -> 'Hwy 12' (Dirty!)\n 5   | ROLLBACK                | \n 6   |                         | BROADCAST 'Hwy 12' (Invalid!)",
+          "type": "visual",
+          "visual_type": "text"
+        },
+        {
+          "question": "If Transit broadcasts a route that Fire Command later rolls back, what are the real-world consequences?",
+          "type": "reflection"
+        },
+        {
+          "type": "output_prediction",
+          "title": "Predicting the Dirty Read",
+          "context": "T1 updates a row but does not commit. T2 reads the row. What does T2 see under READ UNCOMMITTED?",
+          "query": "-- T1: UPDATE routes SET route='Hwy 12' WHERE id=7;\n-- T2:\nSET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;\nSELECT route FROM routes WHERE id=7;",
+          "options": [
+            "Old Route",
+            "Hwy 12",
+            "Error",
+            "NULL"
+          ],
+          "answer": "Hwy 12",
+          "wrong_explanations": {
+            "Old Route": {
+              "why_wrong": "Read Uncommitted doesn't wait for commits.",
+              "confusing_with": "A different or related concept.",
+              "remember": "Check the exact definition of the concept.",
+              "retry": "Try again."
+            },
+            "Error": {
+              "why_wrong": "No error is thrown for dirty reads in this mode.",
+              "confusing_with": "A different or related concept.",
+              "remember": "Check the exact definition of the concept.",
+              "retry": "Try again."
+            },
+            "NULL": {
+              "why_wrong": "It reads the uncommitted value, not NULL.",
+              "confusing_with": "A different or related concept.",
+              "remember": "Check the exact definition of the concept.",
+              "retry": "Try again."
+            }
+          }
+        }
+      ],
+      [
+        {
+          "text": "Police reads the Zone 7 route twice in the same transaction \u2014 first returning 'Highway 4', then 'Route 12' \u2014 because Fire Command committed a change between the two reads.",
+          "title": "The Shifting Ground",
+          "type": "story"
+        },
+        {
+          "analogy": "Imagine checking your bank balance, seeing $100, going to buy a $90 item, and finding your card declined because a subscription hit your account in the exact seconds between your check and purchase.",
+          "explanation": "A non-repeatable read occurs when a row is read twice in the same transaction but returns different values because another committed transaction modified it between the reads.",
+          "technical_explanation": "Unlike a dirty read, the data you read is committed. The problem is that the state of the database changes *while* your transaction is still running.",
+          "title": "Non-Repeatable Reads",
+          "type": "concept"
+        },
+        {
+          "type": "query_completion",
+          "title": "Fixing Non-Repeatable Reads",
+          "context": "We want to ensure that once we read a row, its value won't change if we read it again in the same transaction.",
+          "partial_query": "SET TRANSACTION ISOLATION LEVEL ___;",
+          "options": [
+            "READ COMMITTED",
+            "REPEATABLE READ",
+            "READ UNCOMMITTED"
+          ],
+          "answer": "REPEATABLE READ",
+          "wrong_explanations": {
+            "READ COMMITTED": {
+              "why_wrong": "Read committed allows the value to change if another transaction commits.",
+              "confusing_with": "A different or related concept.",
+              "remember": "Check the exact definition of the concept.",
+              "retry": "Try again."
+            },
+            "READ UNCOMMITTED": {
+              "why_wrong": "This allows even dirty reads.",
+              "confusing_with": "A different or related concept.",
+              "remember": "Check the exact definition of the concept.",
+              "retry": "Try again."
+            }
+          }
+        },
+        {
+          "answer": "Non-repeatable read",
+          "explanation": "Reading the same row twice and getting different results is the definition of a non-repeatable read.",
+          "options": [
+            "Dirty read",
+            "Non-repeatable read",
+            "Phantom read",
+            "Lost update"
+          ],
+          "question": "What anomaly causes the same row to return different values when read twice within the same transaction?",
+          "type": "micro_challenge",
+          "wrong_explanations": {
+            "Dirty read": {
+              "why_wrong": "Not quite. A dirty read occurs when a transaction reads uncommitted changes made by another transaction.",
+              "confusing_with": "A different or related concept.",
+              "remember": "Check the exact definition of the concept.",
+              "retry": "Try again."
+            },
+            "Lost update": {
+              "why_wrong": "Not quite. A lost update occurs when two transactions read and update the same data, and one transaction's update overwrites the other's.",
+              "confusing_with": "A different or related concept.",
+              "remember": "Check the exact definition of the concept.",
+              "retry": "Try again."
+            },
+            "Phantom read": {
+              "why_wrong": "Not quite. A phantom read happens when new rows are added or removed by another transaction, altering the number of rows that match a query.",
+              "confusing_with": "A different or related concept.",
+              "remember": "Check the exact definition of the concept.",
+              "retry": "Try again."
+            }
+          }
+        }
+      ],
+      [
+        {
+          "text": "Fire Command queries 'all open evacuation routes in Zone 7' \u2014 gets 3. It assigns resources. Transit inserts a new route. Fire Command re-queries \u2014 now there are 4. Its resource assignment is stale.",
+          "title": "Phantoms in the Fire Zone",
+          "type": "story"
+        },
+        {
+          "analogy": "You count the number of people in a room and get 10. You turn around, and someone sneaks in through the back door. You count again and get 11.",
+          "explanation": "A phantom read occurs when a transaction re-executes a query and finds a different number of rows because another transaction inserted or deleted rows matching the predicate.",
+          "technical_explanation": "While non-repeatable reads deal with modifications to *existing* rows, phantom reads deal with *new* or *deleted* rows that suddenly match your query's WHERE clause.",
+          "title": "Phantom Reads",
+          "type": "concept"
+        },
+        {
+          "data": "T1: SELECT * FROM routes WHERE zone=7 (Returns 3 rows)\n...\nT2: INSERT INTO routes (zone) VALUES (7)\nT2: COMMIT\n...\nT1: SELECT * FROM routes WHERE zone=7 (Returns 4 rows - PHANTOM!)",
+          "type": "visual",
+          "visual_type": "text"
+        },
+        {
+          "type": "query_correction",
+          "title": "Preventing Phantoms",
+          "context": "You want to prevent new rows from appearing when you re-run a query.",
+          "broken_query": "SET TRANSACTION ISOLATION LEVEL REPEATABLE READ;",
+          "options": [
+            "Change to READ COMMITTED",
+            "Change to SERIALIZABLE"
+          ],
+          "answer": "Change to SERIALIZABLE",
+          "wrong_explanations": {
+            "Change to READ COMMITTED": {
+              "why_wrong": "Read Committed provides even less isolation and still allows phantoms.",
+              "confusing_with": "A different or related concept.",
+              "remember": "Check the exact definition of the concept.",
+              "retry": "Try again."
+            }
+          }
+        },
+        {
+          "answer": "Read Committed",
+          "context": "You need to prevent dirty reads, but you're okay if data changes between reads.",
+          "options": [
+            "Read Uncommitted",
+            "Read Committed",
+            "Repeatable Read",
+            "Serializable"
+          ],
+          "query": "SET TRANSACTION ISOLATION LEVEL READ COMMITTED;",
+          "question": "Which isolation level prevents dirty reads but still allows non-repeatable and phantom reads?",
+          "steps": [
+            "Review isolation levels: Read Uncommitted, Read Committed, Repeatable Read, Serializable",
+            "Select the lowest level that prevents dirty reads."
+          ],
+          "title": "Establishing Boundaries",
+          "type": "guided_practice",
+          "wrong_explanations": {
+            "Read Uncommitted": {
+              "why_wrong": "Not quite. Read Uncommitted is the lowest isolation level and allows dirty reads.",
+              "confusing_with": "A different or related concept.",
+              "remember": "Check the exact definition of the concept.",
+              "retry": "Try again."
+            },
+            "Repeatable Read": {
+              "why_wrong": "Not quite. Repeatable Read prevents both dirty reads and non-repeatable reads.",
+              "confusing_with": "A different or related concept.",
+              "remember": "Check the exact definition of the concept.",
+              "retry": "Try again."
+            },
+            "Serializable": {
+              "why_wrong": "Not quite. Serializable is the strictest level, preventing dirty, non-repeatable, and phantom reads entirely.",
+              "confusing_with": "A different or related concept.",
+              "remember": "Check the exact definition of the concept.",
+              "retry": "Try again."
+            }
+          }
+        }
+      ],
+      [
+        {
+          "text": "Fire Command holds an X-lock on Zone 7 and waits for Zone 12. Transit holds Zone 12 and waits for Zone 7. Neither can proceed.",
+          "title": "The Gridlock",
+          "type": "story"
+        },
+        {
+          "analogy": "Two cars meet on a narrow one-lane bridge. Neither can move forward until the other reverses. They sit there forever.",
+          "explanation": "A deadlock is a circular wait: T1 holds what T2 needs, and T2 holds what T1 needs. Neither can proceed without the other releasing first.",
+          "technical_explanation": "A deadlock is a circular lock dependency. The DBMS detects the cycle with a wait-for graph, selects a victim (usually the transaction that has done the least work), and rolls it back.",
+          "title": "Deadlock",
+          "type": "concept"
+        },
+        {
+          "answer": "Select a victim transaction and roll it back",
+          "explanation": "The DBMS must break the cycle by choosing one transaction to abort, allowing the other to proceed.",
+          "options": [
+            "Wait indefinitely until one transaction times out",
+            "Abort both transactions",
+            "Select a victim transaction and roll it back",
+            "Upgrade the lock type for both transactions"
+          ],
+          "question": "What is the standard DBMS approach to resolving a deadlock?",
+          "type": "micro_challenge",
+          "wrong_explanations": {
+            "Abort both transactions": {
+              "why_wrong": "Not quite. Aborting both is inefficient; it's better to roll back just one to let the other proceed.",
+              "confusing_with": "A different or related concept.",
+              "remember": "Check the exact definition of the concept.",
+              "retry": "Try again."
+            },
+            "Upgrade the lock type for both transactions": {
+              "why_wrong": "Not quite. Lock escalation generally increases contention and doesn't resolve a cyclic deadlock dependency.",
+              "confusing_with": "A different or related concept.",
+              "remember": "Check the exact definition of the concept.",
+              "retry": "Try again."
+            },
+            "Wait indefinitely until one transaction times out": {
+              "why_wrong": "Not quite. While timeouts can break deadlocks, the standard proactive approach is active deadlock detection and victim selection.",
+              "confusing_with": "A different or related concept.",
+              "remember": "Check the exact definition of the concept.",
+              "retry": "Try again."
+            }
+          }
+        }
+      ]
+    ],
+    "format": "episodic"
+  },
+  "7": {
+    "episodes": [
+      [
+        {
+          "text": "The Veridian Colony Network consists of 12 autonomous robot sectors. Each holds a local copy of the Colony Rulebook \u2014 4,000 governance laws. Six hours ago, Sector 3 updated Article 7 (resource allocation). Sector 9 simultaneously updated Article 7 with a conflicting rule. Both updates were committed locally. Two robots are about to make opposite decisions and both believe their law is authoritative.",
+          "title": "The Veridian Colony Network",
+          "type": "story"
+        },
+        {
+          "text": "How do you keep multiple copies of a database synchronized across vast distances where communication can fail?",
+          "type": "problem"
+        },
+        {
+          "analogy": "Like handing out copies of a sheet music score to an orchestra. If the conductor makes a change, everyone needs to update their copy before the performance.",
+          "explanation": "Replication is maintaining multiple copies of the same data across different nodes.",
+          "technical_explanation": "Replication improves availability and read throughput by allowing clients to read from any replica, but it introduces the complex challenge of keeping all copies consistent when writes occur.",
+          "title": "Database Replication",
+          "type": "concept"
+        },
+        {
+          "data": "     [LEADER NODE]\n      /    |    \\\n[FOLLOWER] [FOLLOWER] [FOLLOWER]",
+          "type": "visual",
+          "visual_type": "text"
+        },
+        {
+          "type": "output_prediction",
+          "title": "Predicting Replication Conflict",
+          "context": "Two sectors independently update the local database simultaneously before syncing.",
+          "query": "-- Sector 3: UPDATE laws SET rule='A' WHERE id=7;\n-- Sector 9: UPDATE laws SET rule='B' WHERE id=7;\n-- Network Sync occurs.",
+          "options": [
+            "Rule A",
+            "Rule B",
+            "Conflict / Divergence",
+            "Both"
+          ],
+          "answer": "Conflict / Divergence",
+          "wrong_explanations": {
+            "Rule A": {
+              "why_wrong": "We can't guarantee A wins.",
+              "confusing_with": "A different or related concept.",
+              "remember": "Check the exact definition of the concept.",
+              "retry": "Try again."
+            },
+            "Rule B": {
+              "why_wrong": "We can't guarantee B wins.",
+              "confusing_with": "A different or related concept.",
+              "remember": "Check the exact definition of the concept.",
+              "retry": "Try again."
+            },
+            "Both": {
+              "why_wrong": "A single column can't hold both without conflict resolution.",
+              "confusing_with": "A different or related concept.",
+              "remember": "Check the exact definition of the concept.",
+              "retry": "Try again."
+            }
+          }
+        }
+      ],
+      [
+        {
+          "text": "Sector 1's leader node goes offline due to a power failure. Followers have copies but cannot accept writes without a new leader. The cluster must elect one.",
+          "title": "The Leader Falls",
+          "type": "story"
+        },
+        {
+          "analogy": "If the head chef leaves the kitchen, the sous chef must immediately step up to take orders so the restaurant doesn't stop operating.",
+          "explanation": "In leader/follower replication, the leader accepts all writes. Followers receive a replication stream. Failover is the process of promoting a follower to leader when the current leader fails.",
+          "technical_explanation": "Failover requires automated failure detection, a consensus mechanism to elect a new leader, and rerouting of client traffic.",
+          "title": "Leader/Follower & Failover",
+          "type": "concept"
+        },
+        {
+          "type": "query_completion",
+          "title": "Routing Queries",
+          "context": "You need to route a write query in a primary-replica setup.",
+          "partial_query": "Route to: ___",
+          "options": [
+            "Any Replica",
+            "Primary Node",
+            "Random Node"
+          ],
+          "answer": "Primary Node",
+          "wrong_explanations": {
+            "Any Replica": {
+              "why_wrong": "Replicas are read-only in this setup.",
+              "confusing_with": "A different or related concept.",
+              "remember": "Check the exact definition of the concept.",
+              "retry": "Try again."
+            },
+            "Random Node": {
+              "why_wrong": "Writes must go to the primary.",
+              "confusing_with": "A different or related concept.",
+              "remember": "Check the exact definition of the concept.",
+              "retry": "Try again."
+            }
+          }
+        },
+        {
+          "answer": "The leader (primary) node only",
+          "explanation": "To prevent conflicting writes, a single node (the leader) acts as the authority for all modifications.",
+          "options": [
+            "Any node",
+            "The follower nodes only",
+            "The leader (primary) node only",
+            "Whichever node is least loaded"
+          ],
+          "question": "In leader/follower (primary/replica) replication, which node accepts write operations?",
+          "type": "micro_challenge",
+          "wrong_explanations": {
+            "Any node": {
+              "why_wrong": "Not quite. That describes a multi-leader or leaderless replication topology, not leader/follower.",
+              "confusing_with": "A different or related concept.",
+              "remember": "Check the exact definition of the concept.",
+              "retry": "Try again."
+            },
+            "The follower nodes only": {
+              "why_wrong": "Not quite. Followers exist to serve read queries and provide redundancy; they do not accept direct client writes.",
+              "confusing_with": "A different or related concept.",
+              "remember": "Check the exact definition of the concept.",
+              "retry": "Try again."
+            },
+            "Whichever node is least loaded": {
+              "why_wrong": "Not quite. Load balancing writes dynamically without a designated leader is part of a leaderless setup, not primary/replica.",
+              "confusing_with": "A different or related concept.",
+              "remember": "Check the exact definition of the concept.",
+              "retry": "Try again."
+            }
+          }
+        }
+      ],
+      [
+        {
+          "text": "A follower that is 14 seconds behind the leader is accidentally promoted. The colony loses 14 seconds of committed law changes on failover.",
+          "title": "The Cost of Lag",
+          "type": "story"
+        },
+        {
+          "analogy": "If you are taking notes dictated by a fast speaker, you might always be 3 sentences behind. If the speaker suddenly vanishes, those 3 sentences are lost forever.",
+          "explanation": "Replication lag is the delay between a write committing on the leader and being applied on the follower. Recovery Point Objective (RPO) is the maximum acceptable data loss measured in time.",
+          "technical_explanation": "Asynchronous replication offers high performance but risks data loss on failover (RPO > 0). Synchronous replication guarantees zero data loss (RPO = 0) but suffers from high latency and reduced availability.",
+          "title": "Replication Lag & RPO",
+          "type": "concept"
+        },
+        {
+          "question": "Is it better to lose 14 seconds of data, or stop the entire colony's operations until the primary leader can be restored?",
+          "type": "reflection"
+        }
+      ],
+      [
+        {
+          "text": "To prevent conflicting writes, the system requires that any law change be acknowledged by at least 7 of 12 sectors before it is considered committed.",
+          "title": "The Quorum Consensus",
+          "type": "story"
+        },
+        {
+          "analogy": "In a boardroom of 12 members, no decision can pass without at least 7 votes. This ensures two conflicting decisions can never pass at the same time.",
+          "explanation": "A quorum requires a majority of nodes to agree. This prevents split-brain scenarios.",
+          "technical_explanation": "A quorum is mathematically defined as more than half (floor(N/2) + 1). Any two quorums must overlap by at least one node, making it impossible for two conflicting majorities to exist simultaneously.",
+          "title": "Quorum Systems",
+          "type": "concept"
+        },
+        {
+          "data": "TOTAL NODES: 12\nQUORUM NEEDED: 7\nPROPOSAL A: [x][x][x][x][x][x][x] (7 votes) -> COMMITS!\nPROPOSAL B: [ ][ ][ ][ ][ ] (Only 5 nodes left) -> FAILS",
+          "type": "visual",
+          "visual_type": "text"
+        },
+        {
+          "answer": "Any two quorums must overlap \u2014 they share at least one member",
+          "explanation": "Because a quorum is a majority, any two majorities of the same group must share at least one node. That overlapping node cannot vote for two conflicting proposals.",
+          "options": [
+            "Quorums are always processed sequentially",
+            "Any two quorums must overlap \u2014 they share at least one member",
+            "Only the leader can initiate proposals",
+            "All nodes must vote for the same proposal"
+          ],
+          "question": "What property of quorum systems prevents two conflicting proposals from both being committed?",
+          "type": "micro_challenge",
+          "wrong_explanations": {
+            "All nodes must vote for the same proposal": {
+              "why_wrong": "Not quite. A strict majority (or specific quorum threshold) is sufficient; absolute unanimity is not required.",
+              "confusing_with": "A different or related concept.",
+              "remember": "Check the exact definition of the concept.",
+              "retry": "Try again."
+            },
+            "Only the leader can initiate proposals": {
+              "why_wrong": "Not quite. While true in leader-based consensus (like Raft), quorum overlap is the fundamental property even in leaderless systems.",
+              "confusing_with": "A different or related concept.",
+              "remember": "Check the exact definition of the concept.",
+              "retry": "Try again."
+            },
+            "Quorums are always processed sequentially": {
+              "why_wrong": "Not quite. Quorum systems often process concurrent requests, relying on overlap rather than strict serialization.",
+              "confusing_with": "A different or related concept.",
+              "remember": "Check the exact definition of the concept.",
+              "retry": "Try again."
+            }
+          }
+        }
+      ]
+    ],
+    "format": "episodic"
+  },
+  "8": {
+    "episodes": [
+      [
+        {
+          "text": "ARIA, an AI decision system, generated two briefings from the same report database. Department A received a briefing stating the project budget is $4.2M. Department B received one stating it is $3.8M \u2014 generated 11 minutes later. Both departments have authenticated screenshots.",
+          "title": "Two Truths at Once",
+          "type": "story"
+        },
+        {
+          "text": "How can a database give two different correct answers for the same query at roughly the same time?",
+          "type": "problem"
+        },
+        {
+          "analogy": "Like looking at stars. The light you see left the star years ago. You are seeing a 'snapshot' of the past, even if the star has since exploded.",
+          "explanation": "MVCC maintains multiple versions of a row. Readers see a version consistent with their transaction start time.",
+          "technical_explanation": "Instead of locking rows, the DBMS writes a new version of the row with a new transaction ID. Readers read the version of the row that was committed before their transaction started.",
+          "title": "Multi-Version Concurrency Control (MVCC)",
+          "type": "concept"
+        },
+        {
+          "data": "ROW ID | BUDGET | CREATED_BY_TXN | DELETED_BY_TXN\n-------------------------------------------------\n  10   | $3.8M  |      T1        |      T5       \n  10   | $4.2M  |      T5        |      --       \n\nReaders from before T5 see $3.8M. Readers after T5 see $4.2M.",
+          "type": "visual",
+          "visual_type": "text"
+        },
+        {
+          "type": "output_prediction",
+          "title": "MVCC Snapshot",
+          "context": "What does a reader see if a new version is created after it starts?",
+          "query": "-- Reader starts at t=10\n-- Writer commits version at t=15\n-- Reader reads at t=20",
+          "options": [
+            "Version from t=15",
+            "Version from t=10"
+          ],
+          "answer": "Version from t=10",
+          "wrong_explanations": {
+            "Version from t=15": {
+              "why_wrong": "Under MVCC, reader sees the snapshot from its start time.",
+              "confusing_with": "A different or related concept.",
+              "remember": "Check the exact definition of the concept.",
+              "retry": "Try again."
+            }
+          }
+        }
+      ],
+      [
+        {
+          "text": "T1 started at t=0. Budget writer T2 committed $3.8M \u2192 $4.2M at t=5. T1 reads at t=8 and sees $4.2M. T3 started at t=2 and reads at t=9.",
+          "title": "Snapshots in Time",
+          "type": "story"
+        },
+        {
+          "analogy": "Taking a photograph at the start of a race. Even if someone finishes the race later, your photo still shows them at the starting line.",
+          "explanation": "Under Snapshot Isolation, a transaction sees the database as it was exactly when the transaction started, completely ignoring any commits that happen afterward.",
+          "technical_explanation": "This guarantees consistent reads without taking any locks. Readers never block writers, and writers never block readers.",
+          "title": "Snapshot Isolation",
+          "type": "concept"
+        },
+        {
+          "answer": "$3.8M",
+          "context": "T3 started at t=2. T2 committed a change to the budget at t=5.",
+          "options": [
+            "$4.2M",
+            "$3.8M",
+            "An error",
+            "NULL"
+          ],
+          "query": "SELECT budget FROM projects WHERE id=10;",
+          "question": "Under Snapshot Isolation, which budget value does T3 see when it reads at t=9?",
+          "steps": [
+            "Determine T3's start time: t=2",
+            "Determine the budget value at t=2: $3.8M",
+            "Determine when T3 reads: t=9. T3 still sees the snapshot from t=2."
+          ],
+          "title": "Reading the Timeline",
+          "type": "guided_practice",
+          "wrong_explanations": {
+            "$4.2M": {
+              "why_wrong": "Incorrect. This might represent an uncommitted or future value; Snapshot Isolation ensures reads only see data committed before the transaction started.",
+              "confusing_with": "A different or related concept.",
+              "remember": "Check the exact definition of the concept.",
+              "retry": "Try again."
+            },
+            "An error": {
+              "why_wrong": "Incorrect. Snapshot Isolation uses multi-version concurrency control (MVCC) to avoid errors and locks during reads.",
+              "confusing_with": "A different or related concept.",
+              "remember": "Check the exact definition of the concept.",
+              "retry": "Try again."
+            },
+            "NULL": {
+              "why_wrong": "Incorrect. If a record existed at the start of the transaction, Snapshot Isolation returns that committed version, not NULL.",
+              "confusing_with": "A different or related concept.",
+              "remember": "Check the exact definition of the concept.",
+              "retry": "Try again."
+            }
+          }
+        }
+      ],
+      [
+        {
+          "text": "This explains both briefings: T1 and T3 ran under Snapshot Isolation with different start times, giving each a consistent but different view of the same row. But Snapshot Isolation has a flaw.",
+          "title": "The Blind Spot",
+          "type": "story"
+        },
+        {
+          "analogy": "Two doctors check a patient's chart at 9:00 AM. Both see the patient has not been given medicine. At 9:05 AM, both doctors administer the medicine. Neither doctor's action was wrong based on what they read, but together they administered a double dose.",
+          "explanation": "Write skew occurs when two transactions read overlapping data and make conflicting updates that each appear valid in isolation.",
+          "technical_explanation": "Snapshot Isolation prevents dirty reads and non-repeatable reads, but it doesn't prevent write skew because the conflicts involve *different* rows being updated based on the same read set.",
+          "title": "Write Skew",
+          "type": "concept"
+        },
+        {
+          "question": "If two transactions independently verify a condition and then update different rows, how can a database detect that a rule was violated?",
+          "type": "reflection"
+        }
+      ],
+      [
+        {
+          "text": "The database keeps multiple versions of every row. Over time, old versions no longer needed by any active transaction must be reclaimed. Otherwise, the database will grow indefinitely.",
+          "title": "Cleaning Up History",
+          "type": "story"
+        },
+        {
+          "analogy": "Like an office archivist who goes through the filing cabinets at night, shredding documents that have passed their legal retention period.",
+          "explanation": "A background process that removes row versions no longer visible to any active transaction.",
+          "technical_explanation": "PostgreSQL calls this VACUUM. It scans tables for dead tuples (row versions) whose deletion timestamp is older than the oldest currently running transaction, and marks that space as available for future inserts.",
+          "title": "Vacuuming / Garbage Collection",
+          "type": "concept"
+        },
+        {
+          "answer": "Vacuuming / garbage collection",
+          "explanation": "MVCC relies on a garbage collection process like VACUUM to prevent the database from running out of disk space due to dead row versions.",
+          "options": [
+            "Checkpointing",
+            "Vacuuming / garbage collection",
+            "Defragmentation",
+            "Log archiving"
+          ],
+          "question": "What background process removes row versions no longer visible to any active transaction?",
+          "type": "micro_challenge",
+          "wrong_explanations": {
+            "Checkpointing": {
+              "why_wrong": "Not quite. Checkpointing flushes dirty pages from memory to disk to reduce crash recovery time, it doesn't clean up old row versions.",
+              "confusing_with": "A different or related concept.",
+              "remember": "Check the exact definition of the concept.",
+              "retry": "Try again."
+            },
+            "Defragmentation": {
+              "why_wrong": "Not quite. Defragmentation reorganizes disk blocks to improve sequential read speeds, rather than targeting obsolete MVCC row versions.",
+              "confusing_with": "A different or related concept.",
+              "remember": "Check the exact definition of the concept.",
+              "retry": "Try again."
+            },
+            "Log archiving": {
+              "why_wrong": "Not quite. Log archiving involves backing up WAL files for point-in-time recovery.",
+              "confusing_with": "A different or related concept.",
+              "remember": "Check the exact definition of the concept.",
+              "retry": "Try again."
+            }
+          }
+        }
+      ]
+    ],
+    "format": "episodic"
+  }
+}

@@ -1,0 +1,34 @@
+__pycache__/
+*.py[cod]
+.DS_Store
+.env
+.venv/
+venv/
+*.db
+*.sqlite
+*.sqlite3
+
+# Development / generation scripts
+apply_fixes.py
+case_08_rich.py
+cases_*.py
+check_case17.py
+count_modules.py
+fix_*.py
+generate_explanations.py
+inject_*.py
+make_pages.py
+merge_*.py
+parse_*.py
+patch_*.py
+rich_cases_group*.py
+shift.py
+stitch_*.py
+strip_boilerplate.py
+update_story_data.py
+upgrade_code_lab.py
+
+# Generated intermediate data
+code_labs_dump.json
+code_labs_fixed.json
+level_content_shifted.json

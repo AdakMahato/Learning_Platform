@@ -1,0 +1,407 @@
+{
+  "2": {
+    "episodes": [
+      [
+        {
+          "text": "Three colonies \u2014 Veridian-A, B, and C \u2014 share a single cargo ledger. A 22-minute light-lag separates them. A blackout severed communication 6 hours ago. Colony A allocated Crate 7700 to a medical convoy. Colony C allocated the same crate to a fuel shipment 4 minutes later. Both believe they acted correctly.",
+          "title": "The Severed Connection",
+          "type": "story"
+        },
+        {
+          "text": "How can a system maintain a single truth when its parts can't talk to each other?",
+          "type": "problem"
+        },
+        {
+          "data": "Colony A  <--- x(Blackout)x ---> Colony C\n[Crate 7700: Meds]           [Crate 7700: Fuel]",
+          "type": "visual",
+          "visual_type": "text"
+        },
+        {
+          "analogy": "Like carving a promise into stone, rather than writing it in sand.",
+          "explanation": "The 'D' in ACID. Once the database says 'committed', the data must persist through crashes.",
+          "technical_explanation": "Durability means committed data is written to persistent storage and survives system failures \u2014 even a crash immediately after commit.",
+          "title": "Durability",
+          "type": "concept"
+        },
+        {
+          "answer": "Durability",
+          "explanation": "Durability means committed data is written to persistent storage and survives system failures \u2014 even a crash immediately after commit.",
+          "options": [
+            "Atomicity",
+            "Consistency",
+            "Isolation",
+            "Durability"
+          ],
+          "question": "Which ACID property guarantees that once a transaction is committed, it survives crashes?",
+          "type": "micro_challenge",
+          "wrong_explanations": {
+            "Atomicity": "Not quite. Atomicity ensures a transaction is all-or-nothing, but it doesn't guarantee the data survives a system failure post-commit.",
+            "Consistency": "Not quite. Consistency ensures the database moves from one valid state to another, maintaining defined rules, but doesn't handle crash recovery.",
+            "Isolation": "Not quite. Isolation ensures concurrent transactions do not interfere with each other, rather than dealing with the persistence of data."
+          }
+        }
+      ],
+      [
+        {
+          "text": "Both colonies committed locally. Neither had stale data when they wrote. Yet the combined ledger is now inconsistent.",
+          "title": "The Impossible Triangle",
+          "type": "story"
+        },
+        {
+          "analogy": "Imagine a shared diary. If the network goes down (Partition), you must choose: stop writing in it (sacrifice Availability) to avoid conflicting entries, or let everyone write (sacrifice Consistency) and fix the mess later.",
+          "explanation": "You can only have two: Consistency, Availability, or Partition Tolerance.",
+          "technical_explanation": "A distributed system can provide at most two of: Consistency, Availability, Partition tolerance.",
+          "title": "The CAP Theorem",
+          "type": "concept"
+        },
+        {
+          "data": "       Consistency\n          /   \\\n         /     \\\nAvailability -- Partition Tolerance\n\n(Choose 2)",
+          "type": "visual",
+          "visual_type": "text"
+        },
+        {
+          "answer": "The CAP theorem",
+          "explanation": "The CAP theorem is the fundamental trade-off in distributed database design.",
+          "options": [
+            "The ACID theorem",
+            "The CAP theorem",
+            "The BASE theorem",
+            "Amdahl's Law"
+          ],
+          "question": "Which theorem states a distributed system cannot simultaneously guarantee Consistency, Availability, and Partition tolerance?",
+          "type": "micro_challenge",
+          "wrong_explanations": {
+            "Amdahl's Law": "Not quite. Amdahl's Law describes the theoretical speedup limit of parallel execution, not distributed database consistency.",
+            "The ACID theorem": "Not quite. ACID applies to transaction guarantees on a single database node, not distributed partition tolerance.",
+            "The BASE theorem": "Not quite. BASE is an alternative model to ACID used in NoSQL systems (Basically Available, Soft state, Eventual consistency), not a theorem about hard limitations."
+          }
+        }
+      ],
+      [
+        {
+          "text": "During the blackout, Colony C had no way to know Colony A had already committed. Without coordination, both committed conflicting writes to the same record. Now they are back online, and the system must reconcile.",
+          "title": "Reconciliation",
+          "type": "story"
+        },
+        {
+          "analogy": "Like two friends updating a shared grocery list offline and then syncing their phones.",
+          "explanation": "Eventual consistency allows temporary divergence but guarantees all nodes will converge to the same state if no new updates arrive.",
+          "technical_explanation": "Eventual consistency is used by DynamoDB, Cassandra, and many distributed systems \u2014 diverge now, converge later.",
+          "title": "Lost Update & Eventual Consistency",
+          "type": "concept"
+        },
+        {
+          "question": "If two nodes commit a conflicting update, how should the database decide which one 'wins'?",
+          "type": "reflection"
+        },
+        {
+          "answer": "First-writer-wins",
+          "explanation": "First-writer-wins uses the earliest commit timestamp to determine the authoritative version.",
+          "options": [
+            "Last-writer-wins",
+            "First-writer-wins",
+            "Quorum voting",
+            "Manual review"
+          ],
+          "question": "What conflict resolution strategy gives priority to the earliest committed transaction?",
+          "type": "micro_challenge",
+          "wrong_explanations": {
+            "Last-writer-wins": "Not quite. Last-writer-wins resolves conflicts by keeping the most recently submitted or timestamped data, overwriting earlier commits.",
+            "Manual review": "Not quite. Manual review requires human intervention to resolve conflicts, rather than an automated rule based on commit timestamps.",
+            "Quorum voting": "Not quite. Quorum voting is used to achieve consensus on distributed reads and writes, rather than prioritizing based strictly on the earliest commit time."
+          }
+        }
+      ]
+    ],
+    "format": "episodic"
+  },
+  "3": {
+    "episodes": [
+      [
+        {
+          "text": "The Aurelia Array has collected 547 million radio burst records over 12 years. Analysts believe a non-random repeating signal is buried in the noise. The query to find repeating patterns takes 18 seconds. Analysts are giving up before the results arrive.",
+          "title": "The Signal in the Noise",
+          "type": "story"
+        },
+        {
+          "text": "Why does querying 547 million rows take so long, and how can we speed it up?",
+          "type": "problem"
+        },
+        {
+          "analogy": "Like reading a 1000-page book word-by-word to find a specific character's name.",
+          "explanation": "Reading every row in the table from start to finish.",
+          "technical_explanation": "A sequential scan reads all blocks of the table in order, regardless of how many rows will match the predicate.",
+          "title": "Sequential Scan",
+          "type": "concept"
+        },
+        {
+          "data": "[Block 1] -> [Block 2] -> ... -> [Block 547,000]\n(Reading every single block sequentially)",
+          "type": "visual",
+          "visual_type": "text"
+        },
+        {
+          "answer": "Sequential scan (full table scan)",
+          "explanation": "A sequential scan processes every row \u2014 expensive when very few rows match.",
+          "options": [
+            "Index scan",
+            "Bitmap scan",
+            "Sequential scan (full table scan)",
+            "Index-only scan"
+          ],
+          "question": "What type of scan reads every row in the table from start to finish?",
+          "type": "micro_challenge",
+          "wrong_explanations": {
+            "Bitmap scan": "Not quite. A bitmap scan builds a bitmap in memory based on an index to fetch rows efficiently, which is different from a naive sequential scan.",
+            "Index scan": "Not quite. An index scan uses a separate data structure (an index) to quickly find specific rows, rather than reading the entire table sequentially.",
+            "Index-only scan": "Not quite. An index-only scan retrieves data directly from the index without needing to read the actual table data pages."
+          }
+        }
+      ],
+      [
+        {
+          "text": "You propose creating an index on event_time. The planner now estimates it can skip to the relevant time range and read only 1,200 rows instead of 547 million.",
+          "title": "Building a Roadmap",
+          "type": "story"
+        },
+        {
+          "analogy": "Like the index at the back of a book, telling you exactly which page to turn to.",
+          "explanation": "A self-balancing tree data structure that maintains sorted data and allows rapid searches.",
+          "technical_explanation": "A B-tree index is a self-balancing tree where internal nodes guide the search and leaf nodes store (key, row-pointer) pairs in sorted order.",
+          "title": "B-Tree Index",
+          "type": "concept"
+        },
+        {
+          "data": "          [ 50 ]\n         /      \\\n    [ 25 ]      [ 75 ]\n   /      \\    /      \\\n[10,20] [30,40] ...",
+          "type": "visual",
+          "visual_type": "text"
+        },
+        {
+          "answer": "A balanced tree of sorted key-value pairs",
+          "explanation": "A B-tree keeps keys sorted so that range predicates (BETWEEN, >, <) traverse a narrow path rather than the entire dataset.",
+          "options": [
+            "A hash table",
+            "A linked list",
+            "A balanced tree of sorted key-value pairs",
+            "A bitmap"
+          ],
+          "question": "What internal data structure does a standard database index typically use?",
+          "type": "micro_challenge",
+          "wrong_explanations": {
+            "A bitmap": "Not quite. Bitmaps are useful for low-cardinality columns (like boolean values), but standard database indexes typically use B-trees for general-purpose indexing.",
+            "A hash table": "Not quite. Hash tables are used for exact match lookups but cannot efficiently support range queries, which are common in databases.",
+            "A linked list": "Not quite. Linked lists require O(N) traversal time, which is too slow for database indexing where quick lookups are essential."
+          }
+        }
+      ],
+      [
+        {
+          "text": "After adding the time index, analysts add a second filter: frequency_band = 'L'. The planner uses the time index but still scans half the retrieved rows for frequency_band without an index.",
+          "title": "Complex Filters",
+          "type": "story"
+        },
+        {
+          "analogy": "Like a phonebook sorted first by Last Name, then by First Name.",
+          "explanation": "An index on multiple columns.",
+          "technical_explanation": "A composite index stores multiple columns in a single index structure, making it efficient for queries that filter on all indexed columns together.",
+          "title": "Composite Index",
+          "type": "concept"
+        },
+        {
+          "answer": "Composite index",
+          "context": "We need to filter by both event_time and frequency_band.",
+          "options": [
+            "Partial index",
+            "Clustered index",
+            "Composite index",
+            "Covering index"
+          ],
+          "query": "CREATE INDEX idx_time_band ON signals(event_time, frequency_band);",
+          "question": "What type of index covers two or more columns?",
+          "steps": [
+            "Identify the columns being filtered.",
+            "Create an index on both columns."
+          ],
+          "title": "Optimizing with Composite Indexes",
+          "type": "guided_practice",
+          "wrong_explanations": {
+            "Clustered index": "Not quite. A clustered index determines the physical sorting order of data in the table, not necessarily the number of columns indexed.",
+            "Covering index": "Not quite. A covering index contains all the columns needed for a specific query, which could just be one column or multiple, but 'composite' specifically means multi-column.",
+            "Partial index": "Not quite. A partial index is built on a subset of a table that satisfies a specific condition, rather than spanning multiple columns."
+          }
+        }
+      ],
+      [
+        {
+          "text": "Despite the composite index, analysts run the pattern-aggregation query hourly and it still takes 3 seconds. The result changes only once every 6 hours but is computed from scratch each time.",
+          "title": "The Final Bottleneck",
+          "type": "story"
+        },
+        {
+          "analogy": "Like making a large batch of soup in advance, instead of cooking a fresh bowl every time someone orders.",
+          "explanation": "Pre-computing and storing the results of a complex query.",
+          "technical_explanation": "A materialized view caches the result on disk and refreshes periodically. OLTP handles high-throughput writes; OLAP handles complex reads. Separating them prevents contention.",
+          "title": "Materialized Views & OLAP",
+          "type": "concept"
+        },
+        {
+          "answer": "A materialized view",
+          "explanation": "A materialized view physically stores the query result.",
+          "options": [
+            "A view",
+            "A trigger",
+            "A materialized view",
+            "A stored procedure"
+          ],
+          "question": "What database object stores the pre-computed result of a query and refreshes it on demand?",
+          "type": "micro_challenge",
+          "wrong_explanations": {
+            "A stored procedure": "Not quite. A stored procedure is a saved collection of SQL statements that can be executed as a program, not a stored result set.",
+            "A trigger": "Not quite. A trigger is a piece of code that automatically executes in response to certain events on a particular table or view.",
+            "A view": "Not quite. A standard view is a virtual table that runs its underlying query every time it is accessed, without storing pre-computed results."
+          }
+        }
+      ]
+    ],
+    "format": "episodic"
+  },
+  "4": {
+    "episodes": [
+      [
+        {
+          "text": "Elias Voss submitted his neural implant for diagnostic review. The archive returns 2 marriages, 2 employers, and 2 sets of childhood memories \u2014 each flagged as authentic. The implant stores life-events in a single flat table. Every time Elias moved or changed jobs, someone added a new row. Old rows were never removed. The contradictions multiplied silently.",
+          "title": "The Flawed Memory Archive",
+          "type": "story"
+        },
+        {
+          "text": "How do we organize data to prevent contradictions and anomalies when updating records?",
+          "type": "problem"
+        },
+        {
+          "analogy": "Like a spreadsheet where you can't cram multiple phone numbers into a single 'Contact Info' box.",
+          "explanation": "Every cell must contain a single, indivisible value.",
+          "technical_explanation": "1NF requires atomic values \u2014 each cell holds one value, not a comma-separated list or nested set.",
+          "title": "First Normal Form (1NF)",
+          "type": "concept"
+        },
+        {
+          "data": "BAD:\n| ID | Tags             |\n|  1 | work;education   |\n\nGOOD:\n| ID | Tag       |\n|  1 | work      |\n|  1 | education |",
+          "type": "visual",
+          "visual_type": "text"
+        },
+        {
+          "answer": "1NF",
+          "explanation": "1NF is the foundation: no repeating groups, no multi-valued attributes.",
+          "options": [
+            "BCNF",
+            "2NF",
+            "3NF",
+            "1NF"
+          ],
+          "question": "Which normal form requires that every column contain only atomic (indivisible) values?",
+          "type": "micro_challenge",
+          "wrong_explanations": {
+            "2NF": "Not quite. 2NF requires 1NF and that non-key attributes are fully functionally dependent on the entire primary key.",
+            "3NF": "Not quite. 3NF requires 2NF and that all attributes depend strictly on the primary key, avoiding transitive dependencies.",
+            "BCNF": "Not quite. BCNF is a stricter version of 3NF addressing anomalies in overlapping candidate keys, not basic atomicity."
+          }
+        }
+      ],
+      [
+        {
+          "text": "The implant schema stores person_name and person_city in every event row. Elias's city appears in 312 rows: 309 say 'New Meridian', 3 say 'Old Meridian' \u2014 the city he left 14 years ago.",
+          "title": "The City Anomaly",
+          "type": "story"
+        },
+        {
+          "analogy": "If your key is (Student ID, Course ID), the Student's Name depends only on Student ID, not Course ID. It should be in a separate table.",
+          "explanation": "Every non-key attribute must depend on the whole primary key.",
+          "technical_explanation": "A functional dependency X -> Y means knowing X gives you Y. 2NF eliminates partial dependencies.",
+          "title": "Functional Dependencies & 2NF",
+          "type": "concept"
+        },
+        {
+          "answer": "When the value of one attribute uniquely determines the value of another",
+          "explanation": "A functional dependency X \u2192 Y means: knowing X's value tells you Y's value with certainty.",
+          "options": [
+            "When two tables share a common column",
+            "When the value of one attribute uniquely determines the value of another",
+            "When a column cannot be NULL"
+          ],
+          "question": "What is a functional dependency?",
+          "type": "micro_challenge",
+          "wrong_explanations": {
+            "When a column cannot be NULL": "Not quite. This describes a NOT NULL constraint, ensuring data presence rather than attribute relationships.",
+            "When two tables share a common column": "Not quite. Sharing a common column often refers to a foreign key relationship for joins, not a functional dependency."
+          }
+        }
+      ],
+      [
+        {
+          "text": "After 2NF, you split out a people table: (person_id, person_name, employer_id, employer_city). Now employer_city depends on employer_id \u2014 not on person_id. The dependency is transitive.",
+          "title": "Transitive Chains",
+          "type": "story"
+        },
+        {
+          "analogy": "A table should be about the key, the whole key, and nothing but the key.",
+          "explanation": "Non-key attributes cannot depend on other non-key attributes.",
+          "technical_explanation": "3NF eliminates transitive dependencies. BCNF strengthens 3NF: for every non-trivial functional dependency X -> Y, X must be a superkey.",
+          "title": "Third Normal Form (3NF) & BCNF",
+          "type": "concept"
+        },
+        {
+          "answer": "3NF",
+          "explanation": "3NF requires that every non-key attribute depend directly on the primary key, not via a transitive chain.",
+          "options": [
+            "1NF",
+            "2NF",
+            "3NF",
+            "4NF"
+          ],
+          "question": "What normal form eliminates transitive dependencies \u2014 where a non-key column depends on another non-key column?",
+          "type": "micro_challenge",
+          "wrong_explanations": {
+            "1NF": "Not quite. 1NF ensures all columns have atomic values and each row is unique, but does not address transitive dependencies.",
+            "2NF": "Not quite. 2NF removes partial dependencies on a composite primary key, but does not handle dependencies among non-key columns.",
+            "4NF": "Not quite. 4NF eliminates multi-valued dependencies, going beyond the requirements of eliminating transitive dependencies."
+          }
+        }
+      ],
+      [
+        {
+          "text": "After normalizing to BCNF, the memory search must JOIN 6 tables to reconstruct one event record. The planner estimates 14ms per lookup. The implant's real-time interface needs sub-millisecond recall.",
+          "title": "The Need for Speed",
+          "type": "story"
+        },
+        {
+          "analogy": "Like printing a summary sheet of the most common facts, so you don't have to search 6 different filing cabinets.",
+          "explanation": "Intentionally adding redundancy to speed up reads.",
+          "technical_explanation": "Denormalization deliberately combines normalized tables or adds redundant columns to reduce the number of JOINs for frequent read queries.",
+          "title": "Denormalization",
+          "type": "concept"
+        },
+        {
+          "question": "When is it acceptable to intentionally violate Normal Forms in a production database?",
+          "type": "reflection"
+        },
+        {
+          "answer": "Denormalization",
+          "explanation": "Denormalization is the intentional reversal of some normalization steps \u2014 trading write anomaly risk for faster reads.",
+          "options": [
+            "Normalization",
+            "Denormalization",
+            "Indexing",
+            "Partitioning"
+          ],
+          "question": "What technique intentionally introduces redundancy to improve read performance at the cost of update complexity?",
+          "type": "micro_challenge",
+          "wrong_explanations": {
+            "Indexing": "Not quite. Indexing creates a separate data structure for fast lookups, rather than redundantly embedding data across tables.",
+            "Normalization": "Not quite. Normalization is the process of eliminating redundancy by organizing data into distinct tables.",
+            "Partitioning": "Not quite. Partitioning divides a large table into smaller, more manageable pieces, rather than introducing duplicate data for reads."
+          }
+        }
+      ]
+    ],
+    "format": "episodic"
+  }
+}
